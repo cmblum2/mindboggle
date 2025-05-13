@@ -3,6 +3,9 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Brain, GamepadIcon, Clock, Star } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { useState } from 'react';
+import AuthModal from '@/components/AuthModal';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface Game {
   id: string;
@@ -17,10 +20,13 @@ export interface Game {
 
 interface GameCardProps {
   game: Game;
+  requireLogin?: boolean;
 }
 
-const GameCard = ({ game }: GameCardProps) => {
+const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
   const navigate = useNavigate();
+  const { login, signup } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   const getGameIcon = () => {
     switch (game.icon) {
@@ -45,6 +51,14 @@ const GameCard = ({ game }: GameCardProps) => {
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
+  const handleGameAction = () => {
+    if (requireLogin) {
+      setShowAuthModal(true);
+    } else {
+      navigate(`/game/${game.id}`);
     }
   };
   
@@ -84,10 +98,17 @@ const GameCard = ({ game }: GameCardProps) => {
       
       <Button 
         className="w-full bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white"
-        onClick={() => navigate(`/game/${game.id}`)}
+        onClick={handleGameAction}
       >
-        {game.progress > 0 ? "Continue" : "Start"} Game
+        {requireLogin ? "Sign In to Play" : game.progress > 0 ? "Continue" : "Start"} Game
       </Button>
+      
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLogin={login}
+        onSignup={signup}
+      />
     </div>
   );
 };

@@ -7,26 +7,18 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Game } from '@/components/GameCard';
 import { Skeleton } from '@/components/ui/skeleton';
+import AuthModal from '@/components/AuthModal';
 
 const GameDetail = () => {
   const { gameId } = useParams<{ gameId: string }>();
-  const { user, logout } = useAuth();
+  const { user, login, signup, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   useEffect(() => {
-    if (!user) {
-      navigate('/');
-      toast({
-        title: "Access denied",
-        description: "Please log in to play games",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     if (!gameId) {
       navigate('/games');
       return;
@@ -45,7 +37,7 @@ const GameDetail = () => {
             category: 'Memory',
             difficulty: 'Easy',
             duration: '5 min',
-            progress: 75,
+            progress: user ? 75 : 0,
             icon: 'memory'
           },
           {
@@ -55,7 +47,7 @@ const GameDetail = () => {
             category: 'Focus',
             difficulty: 'Medium',
             duration: '3 min',
-            progress: 30,
+            progress: user ? 30 : 0,
             icon: 'focus'
           },
           {
@@ -65,7 +57,7 @@ const GameDetail = () => {
             category: 'Memory',
             difficulty: 'Medium',
             duration: '4 min',
-            progress: 0,
+            progress: user ? 0 : 0,
             icon: 'memory'
           },
           {
@@ -75,7 +67,7 @@ const GameDetail = () => {
             category: 'Speed',
             difficulty: 'Easy',
             duration: '2 min',
-            progress: 0,
+            progress: user ? 0 : 0,
             icon: 'speed'
           },
           {
@@ -85,7 +77,7 @@ const GameDetail = () => {
             category: 'Focus',
             difficulty: 'Hard',
             duration: '6 min',
-            progress: 50,
+            progress: user ? 50 : 0,
             icon: 'focus'
           },
           {
@@ -95,7 +87,7 @@ const GameDetail = () => {
             category: 'Speed',
             difficulty: 'Medium',
             duration: '5 min',
-            progress: 0,
+            progress: user ? 0 : 0,
             icon: 'speed'
           }
         ];
@@ -104,6 +96,11 @@ const GameDetail = () => {
         
         if (foundGame) {
           setGame(foundGame);
+          
+          // If user is not logged in, show auth modal
+          if (!user) {
+            setShowAuthModal(true);
+          }
         } else {
           toast({
             title: "Game not found",
@@ -124,6 +121,11 @@ const GameDetail = () => {
     // In a real app, this would save the score to backend
     console.log(`Game completed with score: ${score}`);
     
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+    
     // Update local game progress (mock)
     if (game) {
       setGame({
@@ -133,16 +135,16 @@ const GameDetail = () => {
     }
   };
   
-  if (!user || !gameId) {
+  if (!gameId) {
     return null; // Will redirect in useEffect
   }
   
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar 
-        isLoggedIn={true}
+        isLoggedIn={!!user}
         onLogout={logout}
-        onLogin={() => {}}
+        onLogin={() => setShowAuthModal(true)}
       />
       
       <main className="flex-1 container px-4 py-6 md:py-10">
@@ -158,6 +160,7 @@ const GameDetail = () => {
               game={game}
               onComplete={handleGameComplete}
               onBack={() => navigate('/games')}
+              requireLogin={!user}
             />
           </div>
         ) : (
@@ -169,6 +172,13 @@ const GameDetail = () => {
           </div>
         )}
       </main>
+      
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLogin={login}
+        onSignup={signup}
+      />
     </div>
   );
 };

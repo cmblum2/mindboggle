@@ -9,6 +9,7 @@ interface MiniGameProps {
   game: Game;
   onComplete: (score: number) => void;
   onBack: () => void;
+  requireLogin?: boolean;
 }
 
 interface GameState {
@@ -19,7 +20,7 @@ interface GameState {
   gameData: any;
 }
 
-const MiniGame = ({ game, onComplete, onBack }: MiniGameProps) => {
+const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGameProps) => {
   const [state, setState] = useState<GameState>({
     score: 0,
     timeLeft: 60,
@@ -120,6 +121,15 @@ const MiniGame = ({ game, onComplete, onBack }: MiniGameProps) => {
   };
   
   const startGame = () => {
+    if (requireLogin) {
+      toast({
+        title: "Login required",
+        description: "Please log in to play games and save your progress",
+        variant: "default"
+      });
+      return;
+    }
+    
     setState(prev => ({
       ...prev,
       isPlaying: true,
@@ -162,7 +172,7 @@ const MiniGame = ({ game, onComplete, onBack }: MiniGameProps) => {
             className="bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white"
             onClick={startGame}
           >
-            Start Playing
+            {requireLogin ? "Login to Play" : "Start Playing"}
           </Button>
         </div>
       )}

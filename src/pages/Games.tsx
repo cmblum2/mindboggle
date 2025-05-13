@@ -14,17 +14,7 @@ const Games = () => {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    if (!user) {
-      navigate('/');
-      toast({
-        title: "Access denied",
-        description: "Please log in to access games",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Mock loading games data - in a real app, this would fetch from an API
+    // Load games data regardless of login status
     const loadMockGames = () => {
       // Simulate API delay
       setTimeout(() => {
@@ -36,7 +26,7 @@ const Games = () => {
             category: 'Memory',
             difficulty: 'Easy',
             duration: '5 min',
-            progress: 75,
+            progress: user ? 75 : 0,
             icon: 'memory'
           },
           {
@@ -46,7 +36,7 @@ const Games = () => {
             category: 'Focus',
             difficulty: 'Medium',
             duration: '3 min',
-            progress: 30,
+            progress: user ? 30 : 0,
             icon: 'focus'
           },
           {
@@ -56,7 +46,7 @@ const Games = () => {
             category: 'Memory',
             difficulty: 'Medium',
             duration: '4 min',
-            progress: 0,
+            progress: user ? 0 : 0,
             icon: 'memory'
           },
           {
@@ -66,7 +56,7 @@ const Games = () => {
             category: 'Speed',
             difficulty: 'Easy',
             duration: '2 min',
-            progress: 0,
+            progress: user ? 0 : 0,
             icon: 'speed'
           },
           {
@@ -76,7 +66,7 @@ const Games = () => {
             category: 'Focus',
             difficulty: 'Hard',
             duration: '6 min',
-            progress: 50,
+            progress: user ? 50 : 0,
             icon: 'focus'
           },
           {
@@ -86,7 +76,7 @@ const Games = () => {
             category: 'Speed',
             difficulty: 'Medium',
             duration: '5 min',
-            progress: 0,
+            progress: user ? 0 : 0,
             icon: 'speed'
           }
         ]);
@@ -95,18 +85,14 @@ const Games = () => {
     };
     
     loadMockGames();
-  }, [user, navigate, toast]);
-  
-  if (!user) {
-    return null; // Will redirect in useEffect
-  }
+  }, [user]);
   
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar 
-        isLoggedIn={true}
+        isLoggedIn={!!user}
         onLogout={logout}
-        onLogin={() => {}}
+        onLogin={() => navigate('/')}
       />
       
       <main className="flex-1 container px-4 py-6 md:py-10">
@@ -126,7 +112,11 @@ const Games = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {games.map((game) => (
-              <GameCard key={game.id} game={game} />
+              <GameCard 
+                key={game.id} 
+                game={game} 
+                requireLogin={!user} 
+              />
             ))}
           </div>
         )}
