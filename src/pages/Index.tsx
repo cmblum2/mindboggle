@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Brain, GamepadIcon } from 'lucide-react';
+import { Brain, GamepadIcon, Star } from 'lucide-react';
 import NavBar from '@/components/NavBar';
 import AuthModal from '@/components/AuthModal';
 import { useAuth } from '@/hooks/useAuth';
