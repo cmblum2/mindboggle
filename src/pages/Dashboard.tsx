@@ -7,7 +7,7 @@ import NavBar from '@/components/NavBar';
 import { useToast } from '@/hooks/use-toast';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { getUserStats, getRecommendedGames, UserStats } from '@/lib/dashboard';
+import { getUserStats, getRecommendedGames, UserStats, saveGameResults } from '@/lib/dashboard';
 import DailyChallenges from '@/components/DailyChallenges';
 import TrainingPlan from '@/components/TrainingPlan';
 import StatsOverview from '@/components/dashboard/StatsOverview';
@@ -19,7 +19,7 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ navBarExtension }: DashboardProps) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast: toastFromUI } = useToast();
@@ -35,7 +35,6 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   });
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [authChecked, setAuthChecked] = useState(false);
   
   // Force refresh data when coming back from a game
   const [refreshKey, setRefreshKey] = useState(0);
@@ -49,8 +48,10 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   }, [location.pathname]);
   
   useEffect(() => {
-    // Only redirect if we've confirmed the auth state and the user is not authenticated
-    if (user === null && authChecked) {
+    // Only proceed with loading data if we have a user and are not currently loading auth state
+    if (!user && !authLoading) {
+      // Only redirect if auth is finished loading and there's no user
+      console.log("No user found and auth loading completed, redirecting to home");
       navigate('/');
       toastFromUI({
         title: "Access denied",
@@ -60,9 +61,15 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
       return;
     }
     
+    // If authentication is still loading, don't do anything yet
+    if (authLoading) {
+      console.log("Auth is still loading, waiting...");
+      return;
+    }
+    
     // If user is authenticated, proceed with loading data
     if (user) {
-      setAuthChecked(true);
+      console.log("User authenticated, loading dashboard data");
       
       const loadDashboardData = async () => {
         try {
@@ -84,14 +91,11 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
       };
       
       loadDashboardData();
-    } else if (!authChecked) {
-      // If this is the first render and we're still checking auth, mark as checked
-      setAuthChecked(true);
     }
-  }, [user, navigate, toastFromUI, authChecked, refreshKey]);
+  }, [user, navigate, toastFromUI, authLoading, refreshKey]);
   
-  // If we're still loading or checking auth, show a loading state
-  if (user === null && !authChecked) {
+  // If we're still loading auth, show a loading state
+  if (authLoading) {
     return (
       <div className="min-h-screen flex flex-col">
         <NavBar 
@@ -106,9 +110,9 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
     );
   }
   
-  // Otherwise, if the user is null and we've checked auth, just return null
-  if (user === null) {
-    return null; // Will redirect in useEffect
+  // If no user is authenticated after auth check completes, the useEffect above will handle redirect
+  if (!user) {
+    return null;
   }
   
   const handleChallengeComplete = () => {
