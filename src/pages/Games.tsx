@@ -1,60 +1,265 @@
-import { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import NavBar from '@/components/NavBar';
 import { Button } from '@/components/ui/button';
-import GameCard from '@/components/GameCard';
-import { Brain, Zap, Brain as BrainIcon, Puzzle, Sparkles } from 'lucide-react';
+import { Brain, GamepadIcon, Star } from 'lucide-react';
+import NavBar from '@/components/NavBar';
 import { useAuth } from '@/hooks/useAuth';
-import AuthModal from '@/components/AuthModal';
-
-// Mock game data
-const gameData = [
-  {
-    id: 'memory',
-    title: 'Memory Master',
-    description: 'Test and improve your memory recall with progressive challenges',
-    icon: <BrainIcon className="h-8 w-8 text-brain-purple" />,
-    category: 'Memory',
-    difficulty: 'Medium',
-    timeToComplete: '5-10 min',
-  },
-  {
-    id: 'focusFlow',
-    title: 'Focus Flow',
-    description: 'Enhance your concentration by identifying patterns under pressure',
-    icon: <Zap className="h-8 w-8 text-brain-teal" />,
-    category: 'Focus',
-    difficulty: 'Hard',
-    timeToComplete: '10-15 min',
-  },
-  {
-    id: 'puzzleSolver',
-    title: 'Puzzle Solver',
-    description: 'Improve your problem-solving skills with complex puzzles',
-    icon: <Puzzle className="h-8 w-8 text-brain-coral" />,
-    category: 'Logic',
-    difficulty: 'Medium',
-    timeToComplete: '10-20 min',
-  },
-  {
-    id: 'creativeSpark',
-    title: 'Creative Spark',
-    description: 'Unleash your creativity with challenges that require innovative thinking',
-    icon: <Sparkles className="h-8 w-8 text-brain-yellow" />,
-    category: 'Creative',
-    difficulty: 'Easy',
-    timeToComplete: '5-10 min',
-  },
-];
+import { useToast } from '@/hooks/use-toast';
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Progress } from "@/components/ui/progress"
+import { Shell } from '@/components/Shell';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { Separator } from "@/components/ui/separator"
+import { Switch } from "@/components/ui/switch"
+import { Slider } from "@/components/ui/slider"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ModeToggle } from '@/components/mode-toggle';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from "@/components/ui/command"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { CalendarIcon } from "@radix-ui/react-icons"
+import { format } from "date-fns"
+import { enUS } from "date-fns/locale"
+import { DateRange } from "react-day-picker"
+import { Button as button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardDescription,
+  HoverCardHeader,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
+import {
+  ContextMenu,
+  ContextMenuCheckboxItem,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuRadioGroup,
+  ContextMenuRadioItem,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
+import { ProgressDemo } from '@/components/ProgressDemo';
+import { Skeleton } from "@/components/ui/skeleton"
+import { useTheme } from "@/components/theme-provider"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { AspectRatio } from "@/components/ui/aspect-ratio"
+import { Badge } from "@/components/ui/badge"
+import { InputWithButton } from '@/components/input-with-button';
+import { AuthModal } from '@/components/AuthModal';
 
 interface GamesProps {
   navBarExtension?: React.ReactNode;
 }
 
-const Games = ({ navBarExtension }: GamesProps) => {
+interface Game {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  category: string;
+  difficulty: string;
+  timeToComplete: string;
+}
+
+const gamesData: Game[] = [
+  {
+    id: '1',
+    title: 'Memory Match',
+    description: 'Test your memory by matching pairs of cards.',
+    icon: <Brain className="h-6 w-6" />,
+    category: 'Memory',
+    difficulty: 'Easy',
+    timeToComplete: '5-10 minutes',
+  },
+  {
+    id: '2',
+    title: 'Number Crunch',
+    description: 'Sharpen your math skills with quick calculations.',
+    icon: <GamepadIcon className="h-6 w-6" />,
+    category: 'Math',
+    difficulty: 'Medium',
+    timeToComplete: '7-12 minutes',
+  },
+  {
+    id: '3',
+    title: 'Word Scramble',
+    description: 'Unscramble letters to form valid words.',
+    icon: <Star className="h-6 w-6" />,
+    category: 'Verbal',
+    difficulty: 'Hard',
+    timeToComplete: '10-15 minutes',
+  },
+];
+
+interface GameCardProps {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  category: string;
+  difficulty: string;
+  timeToComplete: string;
+  name: string;
+  duration: string;
+  progress: number;
+}
+
+const GameCard: React.FC<GameCardProps> = ({
+  id,
+  title,
+  description,
+  icon,
+  category,
+  difficulty,
+  timeToComplete,
+  name,
+  duration,
+  progress,
+}) => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const handleGameClick = () => {
+    if (user) {
+      navigate(`/game/${id}`);
+    } else {
+      setShowAuthModal(true);
+    }
+  };
+
+  return (
+    <Card className="bg-card text-card-foreground shadow-md hover:shadow-lg transition-shadow duration-200">
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          {icon}
+          <span>{title}</span>
+        </CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-2">
+          <div className="flex items-center space-x-2">
+            <Label className="text-sm font-medium">Category:</Label>
+            <span className="text-muted-foreground">{category}</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Label className="text-sm font-medium">Difficulty:</Label>
+            <span className="text-muted-foreground">{difficulty}</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Label className="text-sm font-medium">Time:</Label>
+            <span className="text-muted-foreground">{timeToComplete}</span>
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter className="flex justify-end">
+        <Button onClick={handleGameClick}>
+          {user ? 'Play Game' : 'Login to Play'}
+        </Button>
+      </CardFooter>
+      {showAuthModal && (
+        <AuthModal 
+          isOpen={showAuthModal} 
+          onClose={() => setShowAuthModal(false)}
+        />
+      )}
+    </Card>
+  );
+};
+
+const Games = ({ navBarExtension }: GamesProps) => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [games, setGames] = useState(gamesData);
+
+  const handleGetStarted = () => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  };
+
+  const handleButtonClick = (path: string) => {
+    if (user) {
+      navigate(path);
+    } else {
+      // Show toast notification that login is required
+      toast({
+        title: "Login Required",
+        description: "Please login or create an account to access this feature.",
+        variant: "default",
+      });
+      
+      // This will trigger the auth modal through the NavBar component
+      const getStartedButton = document.querySelector('[data-get-started]') as HTMLButtonElement;
+      if (getStartedButton) {
+        getStartedButton.click();
+      }
+    }
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -64,41 +269,36 @@ const Games = ({ navBarExtension }: GamesProps) => {
         extension={navBarExtension}
       />
       
-      <main className="flex-1 py-8">
+      <main className="flex-1 py-12 md:py-24">
         <div className="container px-4 md:px-6">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl">
-              Brain Training Games
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-serif">
+              Explore Our Games
             </h1>
-            <p className="mt-4 text-muted-foreground max-w-3xl mx-auto">
-              Challenge your mind with our collection of cognitive games designed to test and improve different areas of brain function
+            <p className="max-w-[700px] text-muted-foreground md:text-xl mx-auto">
+              Challenge your brain with our curated selection of games designed to improve cognitive functions.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {gameData.map((game) => (
-              <GameCard 
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {games.map((game) => (
+              <GameCard
                 key={game.id}
-                game={game}
-                onPlay={() => {
-                  if (user) {
-                    navigate(`/game/${game.id}`);
-                  } else {
-                    setShowAuthModal(true);
-                  }
-                }}
-                isLoggedIn={!!user}
+                id={game.id}
+                title={game.title}
+                description={game.description}
+                icon={game.icon}
+                category={game.category}
+                difficulty={game.difficulty}
+                timeToComplete={game.timeToComplete}
+                name={game.title} // Add name property
+                duration={game.timeToComplete} // Use timeToComplete as duration
+                progress={0} // Default progress value
               />
             ))}
           </div>
         </div>
       </main>
-      
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-      />
     </div>
   );
 };

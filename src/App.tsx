@@ -11,6 +11,7 @@ import Games from "./pages/Games";
 import GameDetail from "./pages/GameDetail";
 import NotFound from "./pages/NotFound";
 import Info from "./pages/Info";
+import AuthConfirmation from "./pages/AuthConfirmation";
 import NavBarExtension from "./components/NavBarExtension";
 import BackgroundDecoration from "./components/BackgroundDecoration";
 
@@ -49,6 +50,7 @@ const AppContent = () => {
         <Route path="/games" element={<Games navBarExtension={<NavBarExtension />} />} />
         <Route path="/game/:gameId" element={<GameDetail navBarExtension={<NavBarExtension />} />} />
         <Route path="/info" element={<Info navBarExtension={<NavBarExtension />} />} />
+        <Route path="/auth/confirm" element={<AuthConfirmation />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
