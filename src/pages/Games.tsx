@@ -2,48 +2,52 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
 import { Button } from '@/components/ui/button';
-import GameCard from '@/components/GameCard';
+import GameCard, { Game as GameType } from '@/components/GameCard';
 import { Brain, Zap, Brain as BrainIcon, Puzzle, Sparkles } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import AuthModal from '@/components/AuthModal';
 
-// Mock game data
-const gameData = [
+// Mock game data adapted to match the Game interface
+const gameData: GameType[] = [
   {
     id: 'memory',
-    title: 'Memory Master',
+    name: 'Memory Master',
     description: 'Test and improve your memory recall with progressive challenges',
-    icon: <BrainIcon className="h-8 w-8 text-brain-purple" />,
+    icon: 'memory',
     category: 'Memory',
     difficulty: 'Medium',
-    timeToComplete: '5-10 min',
+    duration: '5-10 min',
+    progress: 0,
   },
   {
     id: 'focusFlow',
-    title: 'Focus Flow',
+    name: 'Focus Flow',
     description: 'Enhance your concentration by identifying patterns under pressure',
-    icon: <Zap className="h-8 w-8 text-brain-teal" />,
+    icon: 'focus',
     category: 'Focus',
     difficulty: 'Hard',
-    timeToComplete: '10-15 min',
+    duration: '10-15 min',
+    progress: 0,
   },
   {
     id: 'puzzleSolver',
-    title: 'Puzzle Solver',
+    name: 'Puzzle Solver',
     description: 'Improve your problem-solving skills with complex puzzles',
-    icon: <Puzzle className="h-8 w-8 text-brain-coral" />,
+    icon: 'speed',
     category: 'Logic',
     difficulty: 'Medium',
-    timeToComplete: '10-20 min',
+    duration: '10-20 min',
+    progress: 0,
   },
   {
     id: 'creativeSpark',
-    title: 'Creative Spark',
+    name: 'Creative Spark',
     description: 'Unleash your creativity with challenges that require innovative thinking',
-    icon: <Sparkles className="h-8 w-8 text-brain-yellow" />,
+    icon: 'memory',
     category: 'Creative',
     difficulty: 'Easy',
-    timeToComplete: '5-10 min',
+    duration: '5-10 min',
+    progress: 0,
   },
 ];
 
@@ -80,14 +84,7 @@ const Games = ({ navBarExtension }: GamesProps) => {
               <GameCard 
                 key={game.id}
                 game={game}
-                onPlay={() => {
-                  if (user) {
-                    navigate(`/game/${game.id}`);
-                  } else {
-                    setShowAuthModal(true);
-                  }
-                }}
-                isLoggedIn={!!user}
+                requireLogin={!user}
               />
             ))}
           </div>

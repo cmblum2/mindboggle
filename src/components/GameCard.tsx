@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Brain, GamepadIcon, Clock, Star, BrainCircuit, BrainCog } from 'lucide-react';
@@ -27,7 +26,7 @@ interface GameCardProps {
 
 const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
   const navigate = useNavigate();
-  const { login, signup } = useAuth();
+  const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   
@@ -139,8 +138,6 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        onLogin={login}
-        onSignup={signup}
       />
     </div>
   );

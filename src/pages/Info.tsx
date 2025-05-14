@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Brain, GamepadIcon, Star, LightbulbIcon } from 'lucide-react';
-import NavBar from '@/components/NavBar';
+import NavBarWithLogin from '@/components/NavBarFix';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -43,7 +44,7 @@ const Info = ({ navBarExtension }: InfoProps) => {
   
   return (
     <div className="min-h-screen flex flex-col">
-      <NavBar 
+      <NavBarWithLogin 
         isLoggedIn={!!user}
         onLogout={logout}
         onLogin={handleLogin}
