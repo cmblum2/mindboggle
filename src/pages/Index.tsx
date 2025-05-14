@@ -1,9 +1,11 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Brain, GamepadIcon, Star } from 'lucide-react';
 import NavBar from '@/components/NavBar';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 interface IndexProps {
   navBarExtension?: React.ReactNode;
@@ -12,10 +14,30 @@ interface IndexProps {
 const Index = ({ navBarExtension }: IndexProps) => {
   const { user, login, signup, logout } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   const handleGetStarted = () => {
     if (user) {
       navigate('/dashboard');
+    }
+  };
+
+  const handleButtonClick = (path: string) => {
+    if (user) {
+      navigate(path);
+    } else {
+      // Show toast notification that login is required
+      toast({
+        title: "Login Required",
+        description: "Please login or create an account to access this feature.",
+        variant: "default",
+      });
+      
+      // This will trigger the auth modal through the NavBar component
+      const getStartedButton = document.querySelector('[data-get-started]') as HTMLButtonElement;
+      if (getStartedButton) {
+        getStartedButton.click();
+      }
     }
   };
   
@@ -45,14 +67,14 @@ const Index = ({ navBarExtension }: IndexProps) => {
                   <Button
                     className="bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white px-8"
                     size="lg"
-                    onClick={handleGetStarted}
+                    onClick={() => handleButtonClick('/dashboard')}
                   >
                     Get Started
                   </Button>
                   <Button
                     variant="outline"
                     size="lg"
-                    onClick={() => navigate('/games')}
+                    onClick={() => handleButtonClick('/games')}
                   >
                     Explore Games
                   </Button>
@@ -62,31 +84,54 @@ const Index = ({ navBarExtension }: IndexProps) => {
                 <div className="relative">
                   <div className="absolute -top-8 -left-8 w-40 h-40 bg-brain-purple/20 rounded-full blur-2xl animate-pulse-soft" />
                   <div className="absolute -bottom-8 -right-8 w-40 h-40 bg-brain-teal/20 rounded-full blur-2xl animate-pulse-soft" />
-                  <div className="relative z-10 bg-card p-6 rounded-xl shadow-xl border border-brain-teal/10 animate-float">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="flex items-center space-x-2 bg-brain-purple/10 p-3 rounded-lg dark:bg-brain-purple/20">
-                        <Brain className="h-8 w-8 text-brain-purple" />
-                        <div>
-                          <div className="font-medium">Memory</div>
-                          <div className="text-xs text-muted-foreground">Build recall</div>
+                  {user ? (
+                    <div className="relative z-10 bg-card p-6 rounded-xl shadow-xl border border-brain-teal/10 animate-float">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="flex items-center space-x-2 bg-brain-purple/10 p-3 rounded-lg dark:bg-brain-purple/20">
+                          <Brain className="h-8 w-8 text-brain-purple" />
+                          <div>
+                            <div className="font-medium">Memory</div>
+                            <div className="text-xs text-muted-foreground">Build recall</div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-2 bg-brain-teal/10 p-3 rounded-lg dark:bg-brain-teal/20">
-                        <GamepadIcon className="h-8 w-8 text-brain-teal" />
-                        <div>
-                          <div className="font-medium">Focus</div>
-                          <div className="text-xs text-muted-foreground">Sharpen attention</div>
+                        <div className="flex items-center space-x-2 bg-brain-teal/10 p-3 rounded-lg dark:bg-brain-teal/20">
+                          <GamepadIcon className="h-8 w-8 text-brain-teal" />
+                          <div>
+                            <div className="font-medium">Focus</div>
+                            <div className="text-xs text-muted-foreground">Sharpen attention</div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-span-2 bg-muted p-3 rounded-lg">
-                        <div className="text-sm font-medium mb-1">Today's Progress</div>
-                        <div className="w-full bg-muted-foreground/20 rounded-full h-2">
-                          <div className="h-2 rounded-full bg-gradient-to-r from-brain-purple to-brain-teal" style={{ width: '65%' }}></div>
+                        <div className="col-span-2 bg-muted p-3 rounded-lg">
+                          <div className="text-sm font-medium mb-1">Today's Progress</div>
+                          <div className="w-full bg-muted-foreground/20 rounded-full h-2">
+                            <div className="h-2 rounded-full bg-gradient-to-r from-brain-purple to-brain-teal" style={{ width: '65%' }}></div>
+                          </div>
+                          <div className="mt-1 text-xs text-muted-foreground">2/3 brain games complete</div>
                         </div>
-                        <div className="mt-1 text-xs text-muted-foreground">2/3 brain games complete</div>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="relative z-10 bg-card p-6 rounded-xl shadow-xl border border-brain-teal/10 animate-float">
+                      <div className="flex flex-col items-center text-center p-4 space-y-3">
+                        <Brain className="h-12 w-12 text-brain-purple mb-2" />
+                        <h3 className="text-lg font-medium">Train Your Brain</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Sign in to track your progress and access personalized brain training
+                        </p>
+                        <Button 
+                          className="w-full bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white mt-2"
+                          onClick={() => {
+                            const getStartedButton = document.querySelector('[data-get-started]') as HTMLButtonElement;
+                            if (getStartedButton) {
+                              getStartedButton.click();
+                            }
+                          }}
+                        >
+                          Sign In
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
