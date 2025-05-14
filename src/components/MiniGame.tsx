@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Game } from './GameCard';
 import FeedbackPanel from './FeedbackPanel';
+import MemoryGame from './games/MemoryGame';
+import SequenceGame from './games/SequenceGame';
+import WordGame from './games/WordGame';
 
 interface MiniGameProps {
   game: Game;
@@ -17,7 +20,6 @@ interface GameState {
   timeLeft: number;
   isPlaying: boolean;
   showFeedback: boolean;
-  gameData: any;
 }
 
 const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGameProps) => {
@@ -26,21 +28,9 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
     timeLeft: 60,
     isPlaying: false,
     showFeedback: false,
-    gameData: null,
   });
   
   const { toast } = useToast();
-  
-  // Initialize game based on game.id
-  useEffect(() => {
-    if (game.id === 'memory-match') {
-      initMemoryGame();
-    } else if (game.id === 'number-sequence') {
-      initSequenceGame();
-    } else if (game.id === 'word-recall') {
-      initWordGame();
-    }
-  }, [game.id]);
   
   // Timer for games
   useEffect(() => {
@@ -62,64 +52,6 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
     };
   }, [state.isPlaying, state.timeLeft]);
   
-  const initMemoryGame = () => {
-    // Create memory game data - pairs of cards
-    const symbols = ['🍎', '🍌', '🍇', '🍊', '🍓', '🍉', '🍒', '🥝'];
-    const cards = [...symbols, ...symbols]
-      .sort(() => Math.random() - 0.5)
-      .map((symbol, index) => ({ id: index, symbol, flipped: false, matched: false }));
-    
-    setState(prev => ({
-      ...prev,
-      gameData: {
-        cards,
-        flippedCards: [],
-        matches: 0
-      }
-    }));
-  };
-  
-  const initSequenceGame = () => {
-    // Generate sequence of numbers
-    const generateSequence = () => {
-      const length = Math.min(3 + Math.floor(state.score / 2), 9);
-      return Array.from({ length }, () => Math.floor(Math.random() * 9) + 1);
-    };
-    
-    setState(prev => ({
-      ...prev,
-      gameData: {
-        sequence: generateSequence(),
-        userSequence: [],
-        showSequence: true,
-        sequenceStep: 0
-      }
-    }));
-  };
-  
-  const initWordGame = () => {
-    const words = [
-      'APPLE', 'BEACH', 'CLOUD', 'DANCE', 'EAGLE',
-      'FLAME', 'GRAPE', 'HOUSE', 'IGLOO', 'JUICE'
-    ];
-    
-    // Select random words based on level
-    const count = Math.min(3 + Math.floor(state.score / 5), 7);
-    const selectedWords = words
-      .sort(() => Math.random() - 0.5)
-      .slice(0, count);
-    
-    setState(prev => ({
-      ...prev,
-      gameData: {
-        words: selectedWords,
-        showingWords: true,
-        userGuesses: [],
-        wordOptions: [...selectedWords].sort(() => Math.random() - 0.5)
-      }
-    }));
-  };
-  
   const startGame = () => {
     if (requireLogin) {
       toast({
@@ -130,12 +62,12 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
       return;
     }
     
-    setState(prev => ({
-      ...prev,
+    setState({
       isPlaying: true,
-      timeLeft: 60,
-      score: 0
-    }));
+      timeLeft: getGameDuration(),
+      score: 0,
+      showFeedback: false
+    });
   };
   
   const handleGameEnd = () => {
@@ -151,7 +83,82 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
     });
   };
   
-  // Simple placeholder UI - in real app, each game would have custom UI
+  const getGameDuration = (): number => {
+    // Convert duration string to seconds
+    const durationMatch = game.duration.match(/(\d+)/);
+    if (durationMatch) {
+      return parseInt(durationMatch[0]) * 60; // Convert minutes to seconds
+    }
+    return 60; // Default 1 minute
+  };
+  
+  const handleScoreChange = (newScore: number) => {
+    setState(prev => ({
+      ...prev,
+      score: newScore
+    }));
+  };
+  
+  // Render the appropriate game component based on the game.id
+  const renderGame = () => {
+    switch (game.id) {
+      case 'memory-match':
+        return (
+          <MemoryGame
+            onScoreChange={handleScoreChange}
+            onGameEnd={handleGameEnd}
+            difficulty={getDifficulty()}
+          />
+        );
+      case 'number-sequence':
+        return (
+          <SequenceGame
+            onScoreChange={handleScoreChange}
+            onGameEnd={handleGameEnd}
+            difficulty={getDifficulty()}
+          />
+        );
+      case 'word-recall':
+        return (
+          <WordGame
+            onScoreChange={handleScoreChange}
+            onGameEnd={handleGameEnd}
+            difficulty={getDifficulty()}
+          />
+        );
+      default:
+        return (
+          <div className="text-center">
+            <p>Game simulation - click buttons to earn points</p>
+            <div className="flex gap-2 mt-4 justify-center">
+              <Button 
+                variant="outline"
+                onClick={() => handleScoreChange(state.score + 1)}
+              >
+                +1 Point
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => handleScoreChange(state.score + 5)}
+              >
+                +5 Points
+              </Button>
+            </div>
+          </div>
+        );
+    }
+  };
+  
+  // Convert difficulty string to game difficulty level
+  const getDifficulty = (): 'easy' | 'medium' | 'hard' => {
+    switch (game.difficulty.toLowerCase()) {
+      case 'easy': return 'easy';
+      case 'medium': return 'medium';
+      case 'hard': return 'hard';
+      default: return 'medium';
+    }
+  };
+
   return (
     <div className="space-y-6 py-4">
       <div className="flex items-center justify-between">
@@ -186,24 +193,8 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
             <Button variant="outline" onClick={handleGameEnd}>End Game</Button>
           </div>
           
-          <div className="game-area min-h-[300px] flex items-center justify-center border rounded-xl p-4">
-            <div className="text-center">
-              <p>Game simulation - click buttons to earn points</p>
-              <div className="flex gap-2 mt-4 justify-center">
-                <Button 
-                  variant="outline"
-                  onClick={() => setState(prev => ({ ...prev, score: prev.score + 1 }))}
-                >
-                  +1 Point
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => setState(prev => ({ ...prev, score: prev.score + 5 }))}
-                >
-                  +5 Points
-                </Button>
-              </div>
-            </div>
+          <div className="game-area min-h-[300px] border rounded-xl p-4">
+            {renderGame()}
           </div>
         </div>
       )}
