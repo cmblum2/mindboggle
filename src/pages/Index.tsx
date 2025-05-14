@@ -12,7 +12,7 @@ interface IndexProps {
 }
 
 const Index = ({ navBarExtension }: IndexProps) => {
-  const { user, login, signup, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -55,7 +55,7 @@ const Index = ({ navBarExtension }: IndexProps) => {
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
               <div className="space-y-4">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-serif">
                   Train Your Brain.
                   <span className="text-gradient"> Stay Sharp.</span>
                 </h1>

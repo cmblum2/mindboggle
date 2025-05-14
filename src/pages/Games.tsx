@@ -1,143 +1,104 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
-import GameCard, { Game } from '@/components/GameCard';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import GameCard from '@/components/GameCard';
+import { Brain, Zap, Brain as BrainIcon, Puzzle, Sparkles } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import AuthModal from '@/components/AuthModal';
+
+// Mock game data
+const gameData = [
+  {
+    id: 'memory',
+    title: 'Memory Master',
+    description: 'Test and improve your memory recall with progressive challenges',
+    icon: <BrainIcon className="h-8 w-8 text-brain-purple" />,
+    category: 'Memory',
+    difficulty: 'Medium',
+    timeToComplete: '5-10 min',
+  },
+  {
+    id: 'focusFlow',
+    title: 'Focus Flow',
+    description: 'Enhance your concentration by identifying patterns under pressure',
+    icon: <Zap className="h-8 w-8 text-brain-teal" />,
+    category: 'Focus',
+    difficulty: 'Hard',
+    timeToComplete: '10-15 min',
+  },
+  {
+    id: 'puzzleSolver',
+    title: 'Puzzle Solver',
+    description: 'Improve your problem-solving skills with complex puzzles',
+    icon: <Puzzle className="h-8 w-8 text-brain-coral" />,
+    category: 'Logic',
+    difficulty: 'Medium',
+    timeToComplete: '10-20 min',
+  },
+  {
+    id: 'creativeSpark',
+    title: 'Creative Spark',
+    description: 'Unleash your creativity with challenges that require innovative thinking',
+    icon: <Sparkles className="h-8 w-8 text-brain-yellow" />,
+    category: 'Creative',
+    difficulty: 'Easy',
+    timeToComplete: '5-10 min',
+  },
+];
 
 interface GamesProps {
   navBarExtension?: React.ReactNode;
 }
 
 const Games = ({ navBarExtension }: GamesProps) => {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [games, setGames] = useState<Game[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  useEffect(() => {
-    // Load games data regardless of login status
-    const loadMockGames = () => {
-      // Simulate API delay
-      setTimeout(() => {
-        setGames([
-          {
-            id: 'memory-match',
-            name: 'Memory Match',
-            description: 'Test your memory by matching pairs of cards',
-            category: 'Memory',
-            difficulty: 'Easy',
-            duration: '5 min',
-            progress: user ? 75 : 0,
-            icon: 'memory',
-            brainTarget: 'Hippocampus & Temporal Lobe',
-            cognitiveHealth: 'Improves memory formation and recall, potentially slowing age-related memory decline. Strengthens neural connections for better information retention.'
-          },
-          {
-            id: 'number-sequence',
-            name: 'Number Sequence',
-            description: 'Remember and repeat sequences of numbers',
-            category: 'Focus',
-            difficulty: 'Medium',
-            duration: '3 min',
-            progress: user ? 30 : 0,
-            icon: 'focus',
-            brainTarget: 'Prefrontal Cortex',
-            cognitiveHealth: 'Increases attention span and ability to filter distractions. Builds mental stamina and improves executive functions like decision-making.'
-          },
-          {
-            id: 'word-recall',
-            name: 'Word Recall',
-            description: 'Memorize and recall a list of words',
-            category: 'Memory',
-            difficulty: 'Medium',
-            duration: '4 min',
-            progress: user ? 0 : 0,
-            icon: 'memory',
-            brainTarget: 'Hippocampus & Temporal Lobe',
-            cognitiveHealth: 'Strengthens verbal memory and language processing. May help maintain cognitive function in aging adults.'
-          },
-          {
-            id: 'reaction-test',
-            name: 'Reaction Test',
-            description: 'Test your reaction time and processing speed',
-            category: 'Speed',
-            difficulty: 'Easy',
-            duration: '2 min',
-            progress: user ? 0 : 0,
-            icon: 'speed',
-            brainTarget: 'Frontal Lobe & Motor Cortex',
-            cognitiveHealth: 'Enhances processing speed and reaction time. Improves cognitive efficiency and may help maintain neural pathways.'
-          },
-          {
-            id: 'pattern-recognition',
-            name: 'Pattern Recognition',
-            description: 'Identify patterns and complete sequences',
-            category: 'Focus',
-            difficulty: 'Hard',
-            duration: '6 min',
-            progress: user ? 50 : 0,
-            icon: 'focus',
-            brainTarget: 'Prefrontal Cortex & Parietal Lobe',
-            cognitiveHealth: 'Develops pattern recognition and logical thinking skills. Enhances visual-spatial processing and working memory.'
-          },
-          {
-            id: 'mental-math',
-            name: 'Mental Math',
-            description: 'Solve math problems quickly in your head',
-            category: 'Speed',
-            difficulty: 'Medium',
-            duration: '5 min',
-            progress: user ? 0 : 0,
-            icon: 'speed',
-            brainTarget: 'Frontal Lobe & Parietal Lobe',
-            cognitiveHealth: 'Strengthens numerical processing and calculation abilities. Improves working memory and concentration.'
-          }
-        ]);
-        setLoading(false);
-      }, 800);
-    };
-    
-    loadMockGames();
-  }, [user]);
+  const { user, logout } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar 
         isLoggedIn={!!user}
         onLogout={logout}
-        onLogin={() => navigate('/')}
         extension={navBarExtension}
       />
       
-      <main className="flex-1 container px-4 py-6 md:py-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-1">Brain Games</h1>
-          <p className="text-muted-foreground">Exercise different cognitive areas with these fun games</p>
-        </div>
-        
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="bg-muted h-64 rounded-2xl"></div>
-              </div>
-            ))}
+      <main className="flex-1 py-8">
+        <div className="container px-4 md:px-6">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+              Brain Training Games
+            </h1>
+            <p className="mt-4 text-muted-foreground max-w-3xl mx-auto">
+              Challenge your mind with our collection of cognitive games designed to test and improve different areas of brain function
+            </p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {games.map((game) => (
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {gameData.map((game) => (
               <GameCard 
-                key={game.id} 
-                game={game} 
-                requireLogin={!user} 
+                key={game.id}
+                game={game}
+                onPlay={() => {
+                  if (user) {
+                    navigate(`/game/${game.id}`);
+                  } else {
+                    setShowAuthModal(true);
+                  }
+                }}
+                isLoggedIn={!!user}
               />
             ))}
           </div>
-        )}
+        </div>
       </main>
+      
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   );
 };

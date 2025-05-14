@@ -105,12 +105,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Logout function
+  // Logout function - Fixed to properly handle session cleanup
   const logout = async () => {
     setIsLoading(true);
     try {
+      // Clear any local state first to prevent UI flicker
+      setUser(null);
+      
+      // Then sign out from Supabase
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      if (error) {
+        console.error('Logout error:', error);
+        throw error;
+      }
     } catch (error) {
       console.error('Logout error:', error);
       throw error;
