@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { UserStats } from '@/lib/dashboard';
 import { getCategoryIcon, getCategoryColor, getStrongestArea, getWeakestArea } from './CognitiveAreaUtils';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 
 interface AIRecommendationsProps {
   stats: UserStats;
@@ -21,7 +21,11 @@ const AIRecommendations = ({ stats, recommendations, isLoading }: AIRecommendati
   
   const handleGameClick = (gameId: string) => {
     if (!user) {
-      toast.error("Please log in to play this game");
+      toast({
+        title: "Authentication required",
+        description: "Please log in to play this game",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -53,7 +57,7 @@ const AIRecommendations = ({ stats, recommendations, isLoading }: AIRecommendati
                     <div className={`${getCategoryColor(game.category)} p-2 rounded-full`}>
                       {getCategoryIcon(game.category)}
                     </div>
-                    <div>
+                    <div className="flex-grow">
                       <Button 
                         variant="link" 
                         className="h-auto p-0 font-medium text-left"
