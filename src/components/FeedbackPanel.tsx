@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/use-toast';
 
 interface FeedbackPanelProps {
   score: number;
@@ -10,7 +11,7 @@ interface FeedbackPanelProps {
   onClose: () => void;
 }
 
-// Enhanced AI feedback generator
+// Enhanced AI feedback generator with more varied tips
 const generateFeedback = (score: number, gameType: string): Promise<{
   generalFeedback: string;
   brainInsight: string;
@@ -35,16 +36,64 @@ const generateFeedback = (score: number, gameType: string): Promise<{
       // Generate insights based on game type - much more detailed brain information
       if (gameTypeLower.includes('memory')) {
         brainInsight = `This game primarily engages your hippocampus and temporal lobe, critical structures for memory formation and retrieval. The hippocampus acts as a sorter, determining which memories to store long-term and which to discard. When you exercise these areas through memory games, you're creating and reinforcing neural pathways that help with both short-term recall and long-term memory consolidation. Research suggests that regular memory training can increase hippocampal volume and improve connectivity between brain regions involved in memory processing.`;
-        motivationalTip = `Try incorporating omega-3 rich foods like fatty fish, walnuts and flaxseeds in your diet to support memory function. Studies show that these essential fatty acids are critical for maintaining the integrity of brain cell membranes and facilitating neural communication. Consider setting aside 10 minutes each day for a memory exercise – consistency is more important than duration when it comes to cognitive training.`;
+        
+        // Create array of varied memory-specific tips
+        const memoryTips = [
+          `Try incorporating omega-3 rich foods like fatty fish, walnuts and flaxseeds in your diet to support memory function. Studies show that these essential fatty acids are critical for maintaining the integrity of brain cell membranes. For best results, practice memory exercises for 10-15 minutes daily right before bedtime when memory consolidation is most effective.`,
+          `Consider using the "method of loci" technique, where you associate items to remember with specific locations in a familiar place. This spatial memory hack has been used by memory champions for centuries and engages multiple brain regions simultaneously. Combine this with regular aerobic exercise, which has been shown to increase BDNF, a protein that supports memory formation.`,
+          `Research indicates that learning a musical instrument can significantly boost memory function by creating new neural pathways. Even just 30 minutes of instrument practice 3 times weekly can yield measurable improvements. Also, try alternating between different types of memory exercises (visual, verbal, numerical) to develop a more comprehensive memory framework.`,
+          `Sleep plays a crucial role in memory consolidation. Aim for 7-9 hours of quality sleep, particularly focusing on increasing deep sleep phases where memories are processed. During the day, try the "spaced repetition" technique - reviewing information at increasing intervals - which research shows can dramatically improve retention rates compared to cramming.`,
+          `Challenge yourself with dual-task memory exercises where you recall information while performing another cognitive task. This builds cognitive flexibility and strengthens connections between brain regions. Also consider adding rosemary essential oil to your environment, as studies have linked its aroma to improved memory performance.`
+        ];
+        
+        // Select a random tip based on the current time to ensure variety
+        const tipIndex = Math.floor(Date.now() % memoryTips.length);
+        motivationalTip = memoryTips[tipIndex];
       } else if (gameTypeLower.includes('focus')) {
         brainInsight = `This game targets your prefrontal cortex – the brain's command center for attention, executive function, and working memory. When you engage in focused activities, you're strengthening the neural networks that filter distractions and maintain attention on relevant information. The prefrontal cortex works in conjunction with the anterior cingulate cortex to monitor conflicts between competing stimuli and resolve them. By training these areas, you're enhancing your brain's ability to sustain attention and resist distraction – skills that transfer to many daily activities.`;
-        motivationalTip = `Consider practicing mindfulness meditation, which has been shown to physically alter the structure and function of the prefrontal cortex over time. Even 5 minutes daily can yield measurable improvements in attention control. When working on focused tasks, try the Pomodoro technique – 25 minutes of focused work followed by a 5-minute break – to optimize your brain's natural attention cycles and prevent cognitive fatigue.`;
+        
+        // Create array of varied focus-specific tips
+        const focusTips = [
+          `Consider practicing mindfulness meditation, which has been shown to physically alter the structure and function of the prefrontal cortex over time. Even 5 minutes daily can yield measurable improvements in attention control. For maximum focus benefits, try the "52/17 rule" - 52 minutes of focused work followed by a 17-minute break - which research has shown optimizes sustained attention.`,
+          `Limit digital distractions by using the "20-20-20 rule" when using screens: every 20 minutes, look at something 20 feet away for at least 20 seconds. This reduces eye strain and mental fatigue. Additionally, incorporate foods rich in antioxidants like blueberries and dark chocolate, which studies show can enhance blood flow to brain regions involved in focus.`,
+          `Try "attention chunking" - breaking focus sessions into smaller, more manageable periods (starting with just 10 minutes) and gradually extending them as your focus muscles strengthen. Combining this with breathing exercises where you inhale for 4 counts and exhale for 6 can activate your parasympathetic nervous system, creating an optimal state for sustained attention.`,
+          `Research shows that ambient noise at around 70 decibels (like coffee shop chatter) can actually improve creative focus compared to complete silence. Experiment with background noise apps that mimic this environment. Also consider "contrast showers" - alternating between hot and cold water - which has been shown to increase alertness and focus by stimulating your nervous system.`,
+          `The "Pomodoro Technique" can be modified for your specific focus needs - try experimenting with different intervals to find your optimal focus duration. Also, studies show that chewing gum can increase blood flow to the brain by up to 40%, potentially enhancing focus and attention. For best results, choose sugar-free varieties with mint flavors.`
+        ];
+        
+        // Select a random tip based on the score to ensure variety
+        const tipIndex = Math.floor((score * Date.now()) % focusTips.length);
+        motivationalTip = focusTips[tipIndex];
       } else if (gameTypeLower.includes('speed')) {
         brainInsight = `This game engages your brain's white matter pathways, particularly those involving the thalamus, basal ganglia, and motor cortex. Processing speed depends on efficient neural transmission, which relies on healthy myelin sheaths – the protective coating around nerve fibers that speeds up electrical impulses. By repeatedly practicing quick-response tasks, you're optimizing these pathways and potentially enhancing myelination. Improved processing speed has widespread benefits, from faster decision-making to more efficient learning and information retrieval.`;
-        motivationalTip = `Regular cardiovascular exercise has been shown to improve processing speed by increasing blood flow to the brain and promoting the release of BDNF (Brain-Derived Neurotrophic Factor), which supports the growth and maintenance of neural connections. Try incorporating interval training into your fitness routine – alternating between high and moderate intensity – to maximize these cognitive benefits. Additionally, ensure adequate sleep, as even minor sleep deprivation can significantly impact processing speed and reaction time.`;
+        
+        // Create array of varied speed-specific tips
+        const speedTips = [
+          `Regular cardiovascular exercise has been shown to improve processing speed by increasing blood flow to the brain. Try incorporating interval training into your fitness routine – alternating between high and moderate intensity for just 20 minutes, 3 times weekly can produce significant cognitive improvements within 4 weeks.`,
+          `Research indicates that certain video games requiring quick reactions can improve processing speed in everyday tasks. Dedicate 15-20 minutes to action games that require rapid decision-making. Additionally, ensure adequate hydration - even mild dehydration can slow neural transmission by up to 30%.`,
+          `Try "dual n-back" training games that require you to remember sequences while simultaneously processing new information. This challenging exercise has been shown to improve both working memory and processing speed. Pair this with foods rich in vitamin E like nuts and seeds, which research suggests can protect the myelin sheaths critical for fast neural transmission.`,
+          `Visual tracking exercises, where you follow objects moving at increasing speeds, can significantly enhance processing speed. Practice by following a moving object with your eyes for 5 minutes daily, gradually increasing the speed. Also consider supplementing with Vitamin B12, which plays a crucial role in maintaining myelin integrity and neural efficiency.`,
+          `Challenge yourself with cross-body coordination exercises like alternately touching your right hand to your left knee and vice versa at increasing speeds. This strengthens connections between brain hemispheres and improves processing efficiency. Also, research shows that learning to touch type can enhance overall processing speed by reducing cognitive load during information input tasks.`
+        ];
+        
+        // Select a varied tip using multiple factors
+        const tipIndex = Math.floor(((score + gameTypeLower.length) * new Date().getMinutes()) % speedTips.length);
+        motivationalTip = speedTips[tipIndex];
       } else {
         brainInsight = `This cognitive activity engages multiple brain regions, creating a comprehensive workout for your neural networks. By regularly challenging yourself with diverse cognitive tasks, you're building what neuroscientists call 'cognitive reserve' – extra neural capacity that provides resilience against age-related decline or brain injury. Each new skill you develop creates fresh neural pathways, while practice strengthens existing ones.`;
-        motivationalTip = `The brain follows the 'use it or lose it' principle. Regular cognitive challenges across different domains (memory, attention, speed, problem-solving) provide the most comprehensive brain training. Try to incorporate novelty into your routine – learning new skills or solving unfamiliar problems creates the most robust neural growth. Remember that cognitive improvement is gradual; consistent practice over time yields the most significant results.`;
+        
+        // Create array of varied general cognitive tips
+        const generalTips = [
+          `The brain follows the 'use it or lose it' principle. Try incorporating novelty into your daily routine - take a different route home, use your non-dominant hand for simple tasks, or learn 2-3 new words daily. These small changes create new neural connections and build cognitive flexibility.`,
+          `Research from the FINGER study shows that combining cognitive training with social engagement yields greater benefits than either alone. Try joining a book club, language exchange, or group puzzle-solving activities to maximize your cognitive gains while building social connections.`,
+          `Consider the "cognitive rotation" approach - alternating between different types of mental challenges throughout the week (memory on Monday, speed on Tuesday, etc.). This comprehensive approach ensures development across all cognitive domains rather than specializing in just one area.`,
+          `The "spacing effect" demonstrates that distributing learning over time is more effective than concentrated practice. Try shorter, more frequent cognitive training sessions (10-15 minutes daily) rather than longer, less frequent ones for optimal neural growth and maintenance.`,
+          `Consider trying neurobics - exercises that engage all your senses in novel ways. For example, try showering with your eyes closed, identifying spices by smell alone, or having conversations without using specific common words. These unusual challenges create new neural pathways and strengthen overall cognitive flexibility.`
+        ];
+        
+        // Select a varied general tip
+        const tipIndex = Math.floor(Math.random() * generalTips.length);
+        motivationalTip = generalTips[tipIndex];
       }
       
       resolve({ 
@@ -63,6 +112,7 @@ const FeedbackPanel = ({ score, gameType, onClose }: FeedbackPanelProps) => {
     motivationalTip: string;
   } | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const { toast } = useToast();
   
   useEffect(() => {
     const getFeedback = async () => {
@@ -76,13 +126,18 @@ const FeedbackPanel = ({ score, gameType, onClose }: FeedbackPanelProps) => {
           brainInsight: '',
           motivationalTip: ''
         });
+        toast({
+          title: "Feedback error",
+          description: "Could not generate personalized feedback",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
     };
     
     getFeedback();
-  }, [score, gameType]);
+  }, [score, gameType, toast]);
   
   return (
     <Card className="border-brain-teal/20">
