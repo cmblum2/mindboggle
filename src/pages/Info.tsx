@@ -153,7 +153,7 @@ const Info = ({ navBarExtension }: InfoProps) => {
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-3xl font-bold mb-6">Ready to Exercise Your Brain?</h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Join thousands of users who are taking a proactive approach to their cognitive health with MindBoggle's 
+                Take a proactive approach to your cognitive health with MindBoggle's 
                 engaging games and personalized feedback.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
