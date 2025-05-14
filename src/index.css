@@ -94,6 +94,10 @@
     font-family: 'Outfit', sans-serif;
   }
   
+  .font-times {
+    font-family: 'Times New Roman', Times, serif;
+  }
+  
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-brain-purple via-brain-teal to-brain-coral;
   }

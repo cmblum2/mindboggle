@@ -1,142 +1,110 @@
-
-import { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Gamepad2, Search } from 'lucide-react';
 import NavBar from '@/components/NavBar';
-import GameCard, { Game } from '@/components/GameCard';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface GamesProps {
   navBarExtension?: React.ReactNode;
 }
 
 const Games = ({ navBarExtension }: GamesProps) => {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [games, setGames] = useState<Game[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  useEffect(() => {
-    // Load games data regardless of login status
-    const loadMockGames = () => {
-      // Simulate API delay
-      setTimeout(() => {
-        setGames([
-          {
-            id: 'memory-match',
-            name: 'Memory Match',
-            description: 'Test your memory by matching pairs of cards',
-            category: 'Memory',
-            difficulty: 'Easy',
-            duration: '5 min',
-            progress: user ? 75 : 0,
-            icon: 'memory',
-            brainTarget: 'Hippocampus & Temporal Lobe',
-            cognitiveHealth: 'Improves memory formation and recall, potentially slowing age-related memory decline. Strengthens neural connections for better information retention.'
-          },
-          {
-            id: 'number-sequence',
-            name: 'Number Sequence',
-            description: 'Remember and repeat sequences of numbers',
-            category: 'Focus',
-            difficulty: 'Medium',
-            duration: '3 min',
-            progress: user ? 30 : 0,
-            icon: 'focus',
-            brainTarget: 'Prefrontal Cortex',
-            cognitiveHealth: 'Increases attention span and ability to filter distractions. Builds mental stamina and improves executive functions like decision-making.'
-          },
-          {
-            id: 'word-recall',
-            name: 'Word Recall',
-            description: 'Memorize and recall a list of words',
-            category: 'Memory',
-            difficulty: 'Medium',
-            duration: '4 min',
-            progress: user ? 0 : 0,
-            icon: 'memory',
-            brainTarget: 'Hippocampus & Temporal Lobe',
-            cognitiveHealth: 'Strengthens verbal memory and language processing. May help maintain cognitive function in aging adults.'
-          },
-          {
-            id: 'reaction-test',
-            name: 'Reaction Test',
-            description: 'Test your reaction time and processing speed',
-            category: 'Speed',
-            difficulty: 'Easy',
-            duration: '2 min',
-            progress: user ? 0 : 0,
-            icon: 'speed',
-            brainTarget: 'Frontal Lobe & Motor Cortex',
-            cognitiveHealth: 'Enhances processing speed and reaction time. Improves cognitive efficiency and may help maintain neural pathways.'
-          },
-          {
-            id: 'pattern-recognition',
-            name: 'Pattern Recognition',
-            description: 'Identify patterns and complete sequences',
-            category: 'Focus',
-            difficulty: 'Hard',
-            duration: '6 min',
-            progress: user ? 50 : 0,
-            icon: 'focus',
-            brainTarget: 'Prefrontal Cortex & Parietal Lobe',
-            cognitiveHealth: 'Develops pattern recognition and logical thinking skills. Enhances visual-spatial processing and working memory.'
-          },
-          {
-            id: 'mental-math',
-            name: 'Mental Math',
-            description: 'Solve math problems quickly in your head',
-            category: 'Speed',
-            difficulty: 'Medium',
-            duration: '5 min',
-            progress: user ? 0 : 0,
-            icon: 'speed',
-            brainTarget: 'Frontal Lobe & Parietal Lobe',
-            cognitiveHealth: 'Strengthens numerical processing and calculation abilities. Improves working memory and concentration.'
-          }
-        ]);
-        setLoading(false);
-      }, 800);
-    };
-    
-    loadMockGames();
-  }, [user]);
-  
+
+  const handleGameClick = (gameId: string) => {
+    navigate(`/game/${gameId}`);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar 
-        isLoggedIn={!!user}
-        onLogout={logout}
-        onLogin={() => navigate('/')}
+        isLoggedIn={boolean}
+        onLogout={() => {}}
         extension={navBarExtension}
       />
       
-      <main className="flex-1 container px-4 py-6 md:py-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-1">Brain Games</h1>
-          <p className="text-muted-foreground">Exercise different cognitive areas with these fun games</p>
+      <main className="container py-12 flex-1">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Explore Games</h1>
+          <div className="flex items-center space-x-2">
+            <Label htmlFor="search">
+              <Search className="h-4 w-4 mr-2" />
+            </Label>
+            <Input id="search" placeholder="Search games..." className="md:w-64" />
+          </div>
         </div>
-        
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="bg-muted h-64 rounded-2xl"></div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {games.map((game) => (
-              <GameCard 
-                key={game.id} 
-                game={game} 
-                requireLogin={!user} 
-              />
-            ))}
-          </div>
-        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Example Game Cards - Replace with actual game data */}
+          <Card className="interactive-card">
+            <CardHeader>
+              <CardTitle>Memory Match</CardTitle>
+              <CardDescription>Test your memory skills</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>Match pairs of cards with increasing difficulty.</p>
+              <Button variant="secondary" className="mt-4" onClick={() => handleGameClick('memory-match')}>
+                Play Now <Gamepad2 className="ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="interactive-card">
+            <CardHeader>
+              <CardTitle>Number Sequence</CardTitle>
+              <CardDescription>Identify the next number in the sequence</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>Improve your logical thinking with number patterns.</p>
+              <Button variant="secondary" className="mt-4" onClick={() => handleGameClick('number-sequence')}>
+                Play Now <Gamepad2 className="ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="interactive-card">
+            <CardHeader>
+              <CardTitle>Word Scramble</CardTitle>
+              <CardDescription>Unscramble the letters to form a word</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>Enhance your vocabulary and word recognition skills.</p>
+              <Button variant="secondary" className="mt-4" onClick={() => handleGameClick('word-scramble')}>
+                Play Now <Gamepad2 className="ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Add more game cards here */}
+          <Card className="interactive-card">
+            <CardHeader>
+              <CardTitle>Spatial Reasoning</CardTitle>
+              <CardDescription>Solve spatial puzzles</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>Develop your spatial awareness and problem-solving abilities.</p>
+              <Button variant="secondary" className="mt-4" onClick={() => handleGameClick('spatial-reasoning')}>
+                Play Now <Gamepad2 className="ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="interactive-card">
+            <CardHeader>
+              <CardTitle>Pattern Recognition</CardTitle>
+              <CardDescription>Identify patterns in a sequence</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>Improve your pattern recognition and analytical skills.</p>
+              <Button variant="secondary" className="mt-4" onClick={() => handleGameClick('pattern-recognition')}>
+                Play Now <Gamepad2 className="ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </main>
     </div>
   );
