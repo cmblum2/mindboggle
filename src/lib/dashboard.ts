@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UserStats {
@@ -217,16 +218,26 @@ export const getRecommendedGames = async (stats: UserStats) => {
       weakestScore = stats.speedScore;
     }
     
-    // Calculate game difficulty based on overall score
-    const recommendedDifficulty = stats.overallScore < 300 ? 'Easy' : 
-                                stats.overallScore < 600 ? 'Medium' : 'Hard';
+    // Map the weakest area to specific game recommendations that match the valid game IDs in GameDetail
+    let recommendedGameId = 'memory-match';
+    let recommendedGameName = 'Memory Match';
     
-    // Generate personalized recommendations
+    if (weakestArea === 'memory') {
+      recommendedGameId = 'memory-match';
+      recommendedGameName = 'Memory Match';
+    } else if (weakestArea === 'focus') {
+      recommendedGameId = 'number-sequence';
+      recommendedGameName = 'Number Sequence';
+    } else if (weakestArea === 'speed') {
+      recommendedGameId = 'reaction-test';
+      recommendedGameName = 'Reaction Test';
+    }
+    
+    // Generate personalized recommendations with valid game IDs
     return [
       {
-        id: `${weakestArea}-training`,
-        name: weakestArea === 'memory' ? 'Memory Mastery' : 
-              weakestArea === 'focus' ? 'Focus Trainer' : 'Speed Challenge',
+        id: recommendedGameId,
+        name: recommendedGameName,
         category: weakestArea,
         icon: weakestArea
       },
@@ -239,10 +250,10 @@ export const getRecommendedGames = async (stats: UserStats) => {
     ];
   } catch (error) {
     console.error("Error generating recommendations:", error);
-    // Fallback to default recommendations
+    // Fallback to default recommendations with valid game IDs
     return [
       {
-        id: 'memory-game',
+        id: 'memory-match',
         name: 'Memory Match',
         category: 'memory',
         icon: 'memory'

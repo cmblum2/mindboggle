@@ -29,6 +29,8 @@ const AIRecommendations = ({ stats, recommendations, isLoading }: AIRecommendati
       return;
     }
     
+    // Log which game is being navigated to for debugging
+    console.log(`Navigating to game: ${gameId}`);
     navigate(`/game/${gameId}`);
   };
   
