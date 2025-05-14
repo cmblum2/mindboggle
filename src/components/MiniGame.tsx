@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -126,6 +125,7 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
             difficulty={getDifficulty()}
           />
         );
+      case 'reaction-test':
       default:
         return (
           <div className="text-center">

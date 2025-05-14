@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Brain, GamepadIcon, Clock, Star, BrainCircuit, BrainCog } from 'lucide-react';
@@ -57,9 +58,10 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
   };
   
   const handleGameAction = () => {
-    if (requireLogin) {
+    if (requireLogin && !user) {
       setShowAuthModal(true);
     } else {
+      // Make sure we're using the correct ID to navigate
       navigate(`/game/${game.id}`);
     }
   };
@@ -132,7 +134,7 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
         className="w-full bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white"
         onClick={handleGameAction}
       >
-        {requireLogin ? "Sign In to Play" : game.progress > 0 ? "Continue" : "Start"} Game
+        {requireLogin && !user ? "Sign In to Play" : game.progress > 0 ? "Continue" : "Start"} Game
       </Button>
       
       <AuthModal

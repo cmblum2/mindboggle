@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -10,7 +11,7 @@ import AuthModal from '@/components/AuthModal';
 // Mock game data adapted to match the Game interface
 const gameData: GameType[] = [
   {
-    id: 'memory',
+    id: 'memory-match',
     name: 'Memory Master',
     description: 'Test and improve your memory recall with progressive challenges',
     icon: 'memory',
@@ -20,7 +21,7 @@ const gameData: GameType[] = [
     progress: 0,
   },
   {
-    id: 'focusFlow',
+    id: 'number-sequence',
     name: 'Focus Flow',
     description: 'Enhance your concentration by identifying patterns under pressure',
     icon: 'focus',
@@ -30,20 +31,20 @@ const gameData: GameType[] = [
     progress: 0,
   },
   {
-    id: 'puzzleSolver',
+    id: 'word-recall',
     name: 'Puzzle Solver',
     description: 'Improve your problem-solving skills with complex puzzles',
-    icon: 'speed',
+    icon: 'memory',
     category: 'Logic',
     difficulty: 'Medium',
     duration: '10-20 min',
     progress: 0,
   },
   {
-    id: 'creativeSpark',
+    id: 'reaction-test',
     name: 'Creative Spark',
     description: 'Unleash your creativity with challenges that require innovative thinking',
-    icon: 'memory',
+    icon: 'speed',
     category: 'Creative',
     difficulty: 'Easy',
     duration: '5-10 min',
