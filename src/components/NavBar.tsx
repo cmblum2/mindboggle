@@ -9,9 +9,10 @@ interface NavBarProps {
   isLoggedIn: boolean;
   onLogout: () => void;
   onLogin: () => void;
+  extension?: React.ReactNode;
 }
 
-const NavBar = ({ isLoggedIn, onLogout, onLogin }: NavBarProps) => {
+const NavBar = ({ isLoggedIn, onLogout, onLogin, extension }: NavBarProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -21,7 +22,7 @@ const NavBar = ({ isLoggedIn, onLogout, onLogin }: NavBarProps) => {
   };
   
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-md border-b border-brain-teal/10">
+    <header className="sticky top-0 z-50 w-full bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b border-brain-teal/10">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigation('/')}>
           <Brain className="h-7 w-7 text-brain-purple" />
@@ -138,6 +139,9 @@ const NavBar = ({ isLoggedIn, onLogout, onLogin }: NavBarProps) => {
               Get Started
             </Button>
           )}
+          
+          {/* Add extension slot */}
+          {extension}
         </nav>
       </div>
     </header>
