@@ -89,6 +89,7 @@ const NavBar = ({ isLoggedIn, onLogout, onLogin, extension }: NavBarProps) => {
                   variant="default" 
                   className="bg-gradient-to-r from-brain-purple to-brain-teal text-white" 
                   onClick={() => setShowAuthModal(true)}
+                  data-get-started
                 >
                   Get Started
                 </Button>
@@ -142,6 +143,7 @@ const NavBar = ({ isLoggedIn, onLogout, onLogin, extension }: NavBarProps) => {
             <Button 
               className="bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white"
               onClick={() => setShowAuthModal(true)}
+              data-get-started
             >
               Get Started
             </Button>

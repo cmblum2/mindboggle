@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Brain, GamepadIcon, Star, LightbulbIcon } from 'lucide-react';
 import NavBar from '@/components/NavBar';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 interface InfoProps {
   navBarExtension?: React.ReactNode;
@@ -13,12 +14,32 @@ interface InfoProps {
 const Info = ({ navBarExtension }: InfoProps) => {
   const { user, login, logout } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Create a wrapper function for login that doesn't require parameters
   const handleLogin = () => {
     // The actual login will be handled by a modal or form
     // This is just a placeholder that matches the expected function signature
     login('', '');
+  };
+  
+  const handleButtonClick = (path: string) => {
+    if (user) {
+      navigate(path);
+    } else {
+      // Show toast notification that login is required
+      toast({
+        title: "Login Required",
+        description: "Please login or create an account to access this feature.",
+        variant: "default",
+      });
+      
+      // This will trigger the auth modal through the NavBar component
+      const getStartedButton = document.querySelector('[data-get-started]') as HTMLButtonElement;
+      if (getStartedButton) {
+        getStartedButton.click();
+      }
+    }
   };
   
   return (
@@ -160,14 +181,14 @@ const Info = ({ navBarExtension }: InfoProps) => {
                 <Button
                   className="bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white px-8"
                   size="lg"
-                  onClick={() => navigate('/games')}
+                  onClick={() => handleButtonClick('/games')}
                 >
                   Start Playing
                 </Button>
                 <Button
                   variant="outline"
                   size="lg"
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => handleButtonClick('/dashboard')}
                 >
                   View Dashboard
                 </Button>
