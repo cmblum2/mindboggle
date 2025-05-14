@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -89,9 +88,10 @@ const Info = ({ navBarExtension }: InfoProps) => {
                   <div className="w-full md:w-2/3">
                     <h3 className="text-2xl font-bold mb-3">Science-Based Foundation</h3>
                     <p className="text-muted-foreground">
-                      Built on principles from the Bredesen Protocol, our exercises are designed to target specific 
+                      Built on neuroscientific principles, our exercises are designed to target specific 
                       cognitive domains including memory, attention, processing speed, and executive function. 
-                      Regular cognitive stimulation through engaging activities has been shown to support brain health.
+                      Research shows that regular cognitive stimulation through engaging activities helps support 
+                      brain health and maintain neural pathways.
                     </p>
                   </div>
                 </div>
