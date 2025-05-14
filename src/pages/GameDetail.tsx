@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -120,7 +121,7 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
     fetchGame();
   }, [gameId, user, navigate, toast]);
   
-  const handleGameComplete = (score: number) => {
+  const handleGameComplete = async (score: number) => {
     // In a real app, this would save the score to backend
     console.log(`Game completed with score: ${score}`);
     
@@ -136,6 +137,9 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
         progress: Math.min(100, game.progress + 25)
       });
     }
+    
+    // Navigate back to dashboard with an indicator that stats should refresh
+    navigate('/dashboard', { state: { refreshStats: true } });
   };
   
   if (!gameId) {

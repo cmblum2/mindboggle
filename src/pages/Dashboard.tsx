@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import NavBar from '@/components/NavBar';
@@ -18,9 +19,12 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ navBarExtension }: DashboardProps) => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast: toastFromUI } = useToast();
+  const [refreshKey, setRefreshKey] = useState(0); // Used to force data refresh
+  
   const [stats, setStats] = useState<UserStats>({
     gamesPlayed: 0,
     streak: 0,
@@ -31,87 +35,62 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
     progress: 0,
     lastPlayed: null
   });
+  
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [authChecked, setAuthChecked] = useState(false);
+  
+  // Check if we should refresh stats (coming from game completion)
+  useEffect(() => {
+    if (location.state?.refreshStats) {
+      // Clear the state to prevent future rerenders
+      window.history.replaceState({}, document.title);
+      // Trigger refresh
+      setRefreshKey(prevKey => prevKey + 1);
+    }
+  }, [location.state]);
   
   useEffect(() => {
-    // Only redirect if we've confirmed the auth state and the user is not authenticated
-    if (user === null && authChecked) {
-      navigate('/');
-      toastFromUI({
-        title: "Access denied",
-        description: "Please log in to access your dashboard",
-        variant: "destructive"
-      });
+    if (!user) {
       return;
     }
     
-    // If user is authenticated, proceed with loading data
-    if (user) {
-      setAuthChecked(true);
-      
-      const loadDashboardData = async () => {
-        try {
-          setIsLoading(true);
-          
-          // Fetch user stats
-          const userStats = await getUserStats(user.id);
-          setStats(userStats);
-          
-          // Get game recommendations based on stats
-          const recommendedGames = await getRecommendedGames(userStats);
-          setRecommendations(recommendedGames);
-        } catch (error) {
-          console.error('Failed to load dashboard data:', error);
-          toast.error("We couldn't retrieve your latest statistics");
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      
-      loadDashboardData();
-    } else if (!authChecked) {
-      // If this is the first render and we're still checking auth, mark as checked
-      setAuthChecked(true);
-    }
-  }, [user, navigate, toastFromUI, authChecked]);
+    const loadDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Fetch user stats
+        const userStats = await getUserStats(user.id);
+        setStats(userStats);
+        
+        // Get game recommendations based on stats
+        const recommendedGames = await getRecommendedGames(userStats);
+        setRecommendations(recommendedGames);
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+        toast.error("We couldn't retrieve your latest statistics");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadDashboardData();
+  }, [user, refreshKey]); // Refresh when user or refreshKey changes
   
-  // If we're still loading or checking auth, show a loading state
-  if (user === null && !authChecked) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <NavBar 
-          isLoggedIn={false}
-          onLogout={logout}
-          extension={navBarExtension}
-        />
-        <div className="flex-1 container px-4 py-6 md:py-10 flex items-center justify-center">
-          <Skeleton className="h-24 w-1/2" />
-        </div>
-      </div>
-    );
-  }
-  
-  // Otherwise, if the user is null and we've checked auth, just return null
-  if (user === null) {
-    return null; // Will redirect in useEffect
+  // If authentication is still loading, showing a loading state is handled by ProtectedRoute
+  if (!user) {
+    return null; // Don't render anything if not authenticated, ProtectedRoute will handle the redirect
   }
   
   const handleChallengeComplete = () => {
     // Refresh stats when a challenge is completed
-    if (user) {
-      getUserStats(user.id).then(freshStats => {
-        setStats(freshStats);
-      });
-    }
+    setRefreshKey(prevKey => prevKey + 1);
   };
   
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar 
         isLoggedIn={true}
-        onLogout={logout}
+        onLogout={() => {}} // onLogout is handled in NavBar via useAuth
         extension={navBarExtension}
       />
       

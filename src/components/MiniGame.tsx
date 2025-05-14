@@ -1,11 +1,15 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Game } from './GameCard';
 import FeedbackPanel from './FeedbackPanel';
 import MemoryGame from './games/MemoryGame';
 import SequenceGame from './games/SequenceGame';
 import WordGame from './games/WordGame';
+import { saveGameResults } from '@/lib/dashboard';
+import { useAuth } from '@/hooks/useAuth';
 
 interface MiniGameProps {
   game: Game;
@@ -29,7 +33,8 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
     showFeedback: false,
   });
   
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
+  const { user } = useAuth();
   
   // Timer for games
   useEffect(() => {
@@ -53,7 +58,7 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
   
   const startGame = () => {
     if (requireLogin) {
-      toast({
+      uiToast({
         title: "Login required",
         description: "Please log in to play games and save your progress",
         variant: "default"
@@ -69,14 +74,46 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
     });
   };
   
-  const handleGameEnd = () => {
+  const handleGameEnd = async () => {
     setState(prev => ({
       ...prev,
       isPlaying: false,
       showFeedback: true
     }));
+    
+    // Save game results to database if user is logged in
+    if (user) {
+      try {
+        // Calculate normalized scores based on game category
+        let memoryScore = 0;
+        let focusScore = 0;
+        let speedScore = 0;
+        
+        // Assign score to the appropriate cognitive area based on game category
+        switch(game.category.toLowerCase()) {
+          case 'memory':
+            memoryScore = Math.min(state.score, 100);
+            break;
+          case 'focus':
+            focusScore = Math.min(state.score, 100);
+            break;
+          case 'speed':
+          default:
+            speedScore = Math.min(state.score, 100);
+            break;
+        }
+        
+        // Save results to database
+        await saveGameResults(user.id, memoryScore, focusScore, speedScore);
+        toast.success("Game progress saved!");
+      } catch (error) {
+        console.error("Error saving game results:", error);
+        toast.error("Couldn't save your progress");
+      }
+    }
+    
     onComplete(state.score);
-    toast({
+    uiToast({
       title: "Game complete!",
       description: `You scored ${state.score} points.`
     });
