@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -27,7 +26,9 @@ const Games = () => {
             difficulty: 'Easy',
             duration: '5 min',
             progress: user ? 75 : 0,
-            icon: 'memory'
+            icon: 'memory',
+            brainTarget: 'Hippocampus & Temporal Lobe',
+            cognitiveHealth: 'Improves memory formation and recall, potentially slowing age-related memory decline. Strengthens neural connections for better information retention.'
           },
           {
             id: 'number-sequence',
@@ -37,7 +38,9 @@ const Games = () => {
             difficulty: 'Medium',
             duration: '3 min',
             progress: user ? 30 : 0,
-            icon: 'focus'
+            icon: 'focus',
+            brainTarget: 'Prefrontal Cortex',
+            cognitiveHealth: 'Increases attention span and ability to filter distractions. Builds mental stamina and improves executive functions like decision-making.'
           },
           {
             id: 'word-recall',
@@ -47,7 +50,9 @@ const Games = () => {
             difficulty: 'Medium',
             duration: '4 min',
             progress: user ? 0 : 0,
-            icon: 'memory'
+            icon: 'memory',
+            brainTarget: 'Hippocampus & Temporal Lobe',
+            cognitiveHealth: 'Strengthens verbal memory and language processing. May help maintain cognitive function in aging adults.'
           },
           {
             id: 'reaction-test',
@@ -57,7 +62,9 @@ const Games = () => {
             difficulty: 'Easy',
             duration: '2 min',
             progress: user ? 0 : 0,
-            icon: 'speed'
+            icon: 'speed',
+            brainTarget: 'Frontal Lobe & Motor Cortex',
+            cognitiveHealth: 'Enhances processing speed and reaction time. Improves cognitive efficiency and may help maintain neural pathways.'
           },
           {
             id: 'pattern-recognition',
@@ -67,7 +74,9 @@ const Games = () => {
             difficulty: 'Hard',
             duration: '6 min',
             progress: user ? 50 : 0,
-            icon: 'focus'
+            icon: 'focus',
+            brainTarget: 'Prefrontal Cortex & Parietal Lobe',
+            cognitiveHealth: 'Develops pattern recognition and logical thinking skills. Enhances visual-spatial processing and working memory.'
           },
           {
             id: 'mental-math',
@@ -77,7 +86,9 @@ const Games = () => {
             difficulty: 'Medium',
             duration: '5 min',
             progress: user ? 0 : 0,
-            icon: 'speed'
+            icon: 'speed',
+            brainTarget: 'Frontal Lobe & Parietal Lobe',
+            cognitiveHealth: 'Strengthens numerical processing and calculation abilities. Improves working memory and concentration.'
           }
         ]);
         setLoading(false);

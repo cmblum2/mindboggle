@@ -1,7 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Brain, GamepadIcon, Clock, Star } from 'lucide-react';
+import { Brain, GamepadIcon, Clock, Star, BrainCircuit, BrainCog } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useState } from 'react';
 import AuthModal from '@/components/AuthModal';
@@ -16,6 +16,8 @@ export interface Game {
   duration: string;
   progress: number;
   icon: 'memory' | 'speed' | 'focus';
+  brainTarget?: string;
+  cognitiveHealth?: string;
 }
 
 interface GameCardProps {
@@ -27,6 +29,7 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
   const navigate = useNavigate();
   const { login, signup } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   
   const getGameIcon = () => {
     switch (game.icon) {
@@ -62,8 +65,21 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
     }
   };
   
+  const getBrainTargetIcon = () => {
+    switch (game.category.toLowerCase()) {
+      case 'memory':
+        return <Brain className="h-4 w-4 mr-1" />;
+      case 'speed':
+        return <BrainCircuit className="h-4 w-4 mr-1" />;
+      case 'focus':
+        return <BrainCog className="h-4 w-4 mr-1" />;
+      default:
+        return <Brain className="h-4 w-4 mr-1" />;
+    }
+  };
+  
   return (
-    <div className="game-container">
+    <div className="game-container relative">
       <div className="flex items-start justify-between mb-3">
         <div className="p-2 rounded-full bg-opacity-10" 
           style={{ backgroundColor: game.icon === 'memory' ? 'rgba(123, 97, 255, 0.1)' : 
@@ -78,6 +94,23 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
       
       <h3 className="text-lg font-semibold mb-1">{game.name}</h3>
       <p className="text-sm text-muted-foreground mb-3">{game.description}</p>
+      
+      {/* Brain Target Information Button */}
+      <button 
+        onClick={() => setShowDetails(!showDetails)}
+        className="text-xs font-medium text-brain-purple hover:underline mb-2 inline-flex items-center"
+      >
+        {getBrainTargetIcon()}
+        {showDetails ? "Hide brain details" : "Show brain details"}
+      </button>
+      
+      {/* Collapsible Brain Target Information */}
+      {showDetails && (
+        <div className="bg-brain-purple bg-opacity-5 p-3 rounded-md mb-3 text-xs">
+          <div className="font-medium mb-1 text-brain-purple">Brain Target: {game.brainTarget || getBrainTarget(game.category)}</div>
+          <div className="text-muted-foreground">{game.cognitiveHealth || getCognitiveHealth(game.category)}</div>
+        </div>
+      )}
       
       <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
         <span>{game.category}</span>
@@ -111,6 +144,34 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
       />
     </div>
   );
+};
+
+// Helper function to determine brain target based on category
+const getBrainTarget = (category: string) => {
+  switch (category.toLowerCase()) {
+    case 'memory':
+      return 'Hippocampus & Temporal Lobe';
+    case 'speed':
+      return 'Frontal Lobe & Motor Cortex';
+    case 'focus':
+      return 'Prefrontal Cortex';
+    default:
+      return 'Multiple Brain Regions';
+  }
+};
+
+// Helper function to provide cognitive health benefits based on category
+const getCognitiveHealth = (category: string) => {
+  switch (category.toLowerCase()) {
+    case 'memory':
+      return 'Improves memory formation and recall, potentially slowing age-related memory decline. Strengthens neural connections for better information retention.';
+    case 'speed':
+      return 'Enhances processing speed and reaction time. Improves cognitive efficiency and may help maintain neural pathways that deteriorate with age.';
+    case 'focus':
+      return 'Increases attention span and ability to filter distractions. Builds mental stamina and improves executive functions like decision-making and planning.';
+    default:
+      return 'Provides comprehensive cognitive training across multiple brain functions.';
+  }
 };
 
 export default GameCard;
