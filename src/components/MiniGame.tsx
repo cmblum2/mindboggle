@@ -8,6 +8,7 @@ import FeedbackPanel from './FeedbackPanel';
 import MemoryGame from './games/MemoryGame';
 import SequenceGame from './games/SequenceGame';
 import WordGame from './games/WordGame';
+import BalancedTraining from './games/BalancedTraining';
 import { saveGameResults } from '@/lib/dashboard';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -98,6 +99,15 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
             focusScore = Math.min(state.score, 100);
             break;
           case 'speed':
+            speedScore = Math.min(state.score, 100);
+            break;
+          case 'balanced':
+          case 'mixed':
+            // For balanced training, distribute the score across all areas
+            memoryScore = Math.min(Math.round(state.score / 3), 100);
+            focusScore = Math.min(Math.round(state.score / 3), 100);
+            speedScore = Math.min(Math.round(state.score / 3), 100);
+            break;
           default:
             speedScore = Math.min(state.score, 100);
             break;
@@ -162,6 +172,15 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
       case 'word-recall':
         return (
           <WordGame
+            onScoreChange={handleScoreChange}
+            onGameEnd={handleGameEnd}
+            difficulty={getDifficulty()}
+          />
+        );
+      case 'daily-challenge':
+      case 'balanced-training':
+        return (
+          <BalancedTraining
             onScoreChange={handleScoreChange}
             onGameEnd={handleGameEnd}
             difficulty={getDifficulty()}

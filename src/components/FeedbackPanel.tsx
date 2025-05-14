@@ -16,6 +16,7 @@ const generateFeedback = (score: number, gameType: string): Promise<{
   generalFeedback: string;
   brainInsight: string;
   motivationalTip: string;
+  involvedAreas?: string[];
 }> => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -23,6 +24,7 @@ const generateFeedback = (score: number, gameType: string): Promise<{
       let generalFeedback = '';
       let brainInsight = '';
       let motivationalTip = '';
+      let involvedAreas: string[] = [];
       
       // Generate score-based general feedback
       if (score > 50) {
@@ -36,6 +38,7 @@ const generateFeedback = (score: number, gameType: string): Promise<{
       // Generate insights based on game type - much more detailed brain information
       if (gameTypeLower.includes('memory')) {
         brainInsight = `This game primarily engages your hippocampus and temporal lobe, critical structures for memory formation and retrieval. The hippocampus acts as a sorter, determining which memories to store long-term and which to discard. When you exercise these areas through memory games, you're creating and reinforcing neural pathways that help with both short-term recall and long-term memory consolidation. Research suggests that regular memory training can increase hippocampal volume and improve connectivity between brain regions involved in memory processing.`;
+        involvedAreas = ['hippocampus', 'temporal lobe', 'prefrontal cortex'];
         
         // Create array of varied memory-specific tips
         const memoryTips = [
@@ -51,6 +54,7 @@ const generateFeedback = (score: number, gameType: string): Promise<{
         motivationalTip = memoryTips[tipIndex];
       } else if (gameTypeLower.includes('focus')) {
         brainInsight = `This game targets your prefrontal cortex – the brain's command center for attention, executive function, and working memory. When you engage in focused activities, you're strengthening the neural networks that filter distractions and maintain attention on relevant information. The prefrontal cortex works in conjunction with the anterior cingulate cortex to monitor conflicts between competing stimuli and resolve them. By training these areas, you're enhancing your brain's ability to sustain attention and resist distraction – skills that transfer to many daily activities.`;
+        involvedAreas = ['prefrontal cortex', 'anterior cingulate cortex', 'parietal lobe'];
         
         // Create array of varied focus-specific tips
         const focusTips = [
@@ -66,6 +70,7 @@ const generateFeedback = (score: number, gameType: string): Promise<{
         motivationalTip = focusTips[tipIndex];
       } else if (gameTypeLower.includes('speed')) {
         brainInsight = `This game engages your brain's white matter pathways, particularly those involving the thalamus, basal ganglia, and motor cortex. Processing speed depends on efficient neural transmission, which relies on healthy myelin sheaths – the protective coating around nerve fibers that speeds up electrical impulses. By repeatedly practicing quick-response tasks, you're optimizing these pathways and potentially enhancing myelination. Improved processing speed has widespread benefits, from faster decision-making to more efficient learning and information retrieval.`;
+        involvedAreas = ['thalamus', 'basal ganglia', 'motor cortex', 'white matter tracts'];
         
         // Create array of varied speed-specific tips
         const speedTips = [
@@ -79,8 +84,27 @@ const generateFeedback = (score: number, gameType: string): Promise<{
         // Select a varied tip using multiple factors
         const tipIndex = Math.floor(((score + gameTypeLower.length) * new Date().getMinutes()) % speedTips.length);
         motivationalTip = speedTips[tipIndex];
+      } else if (gameTypeLower.includes('balanced') || gameTypeLower.includes('mixed') || gameTypeLower.includes('daily')) {
+        brainInsight = `Today's balanced training exercise activated multiple cognitive systems simultaneously. Your prefrontal cortex coordinated the shifting between different cognitive tasks, while your hippocampus handled memory components and your cerebellum coordinated timing and precision. This type of comprehensive training is particularly valuable because it creates connections between different brain regions, promoting what neuroscientists call "cognitive integration." Research shows that activities engaging multiple cognitive domains simultaneously can be more effective at building cognitive reserve than single-domain exercises.`;
+        involvedAreas = ['prefrontal cortex', 'hippocampus', 'cerebellum', 'parietal lobe', 'basal ganglia', 'temporal lobe'];
+        
+        // Create array of varied balanced-specific tips
+        const balancedTips = [
+          `For balanced cognitive development, consider the "cognitive rotation" approach where you deliberately engage in activities that target different brain functions throughout your week. This comprehensive strategy ensures more uniform development across all cognitive domains and creates stronger connections between brain regions.`,
+          `The Japanese concept of "shikaku" – engaging in diverse mental challenges daily – has been linked to maintaining cognitive health into very old age. Try incorporating novel activities that combine memory, focus, and speed skills like learning new dance steps, speaking a foreign language while cooking, or playing strategy games with time constraints.`,
+          `Research from the ACTIVE study shows that cognitive training benefits can last up to 10 years with proper reinforcement. To maximize benefits, try "cross-training" your brain by switching between memory, focus, and speed exercises within a single session, which promotes stronger interconnections between neural networks.`,
+          `Neuroscientists have found that "neuroplasticity" – your brain's ability to reorganize itself – is enhanced when you engage in activities that are novel, challenging, and meaningful. Look for ways to increase the challenge level of everyday activities by adding time constraints, memory components, or focus challenges to routine tasks.`,
+          `The "cognitive enrichment hypothesis" suggests that engaging in a variety of mentally stimulating activities throughout life builds cognitive reserve, providing resilience against age-related cognitive decline. Maximize this effect by combining physical exercise with cognitive challenges – try solving mental math problems while walking or reciting memorized information while doing balance exercises.`
+        ];
+        
+        // Select a varied balanced tip
+        const today = new Date();
+        const dailySeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+        const tipIndex = dailySeed % balancedTips.length;
+        motivationalTip = balancedTips[tipIndex];
       } else {
         brainInsight = `This cognitive activity engages multiple brain regions, creating a comprehensive workout for your neural networks. By regularly challenging yourself with diverse cognitive tasks, you're building what neuroscientists call 'cognitive reserve' – extra neural capacity that provides resilience against age-related decline or brain injury. Each new skill you develop creates fresh neural pathways, while practice strengthens existing ones.`;
+        involvedAreas = ['multiple brain regions'];
         
         // Create array of varied general cognitive tips
         const generalTips = [
@@ -99,7 +123,8 @@ const generateFeedback = (score: number, gameType: string): Promise<{
       resolve({ 
         generalFeedback, 
         brainInsight, 
-        motivationalTip 
+        motivationalTip,
+        involvedAreas
       });
     }, 2000); // Simulate API delay
   });
@@ -110,6 +135,7 @@ const FeedbackPanel = ({ score, gameType, onClose }: FeedbackPanelProps) => {
     generalFeedback: string;
     brainInsight: string;
     motivationalTip: string;
+    involvedAreas?: string[];
   } | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const { toast } = useToast();
@@ -165,6 +191,29 @@ const FeedbackPanel = ({ score, gameType, onClose }: FeedbackPanelProps) => {
               <div className="text-sm text-muted-foreground">Your Score</div>
               <div className="font-medium">{score} points</div>
             </div>
+            
+            {feedback?.involvedAreas && feedback.involvedAreas.length > 0 && 
+              (gameType.toLowerCase().includes('balanced') || 
+               gameType.toLowerCase().includes('mixed') || 
+               gameType.toLowerCase().includes('daily')) && (
+              <div className="border-t pt-4">
+                <div className="text-sm font-medium text-brain-purple mb-2">Brain Areas Involved</div>
+                <div className="flex flex-wrap gap-2">
+                  {feedback.involvedAreas.map((area, index) => (
+                    <span 
+                      key={index}
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        index % 3 === 0 ? 'bg-brain-purple/10 text-brain-purple' : 
+                        index % 3 === 1 ? 'bg-brain-teal/10 text-brain-teal' : 
+                        'bg-brain-coral/10 text-brain-coral'
+                      }`}
+                    >
+                      {area}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
             
             <div className="border-t pt-4">
               <div className="text-sm text-muted-foreground mb-2">Performance Assessment</div>

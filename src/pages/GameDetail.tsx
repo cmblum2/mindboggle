@@ -33,6 +33,14 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
     const fetchGame = () => {
       // Simulate API delay
       setTimeout(() => {
+        // Get today's date for the daily challenge
+        const today = new Date();
+        const dateString = today.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric',
+          year: 'numeric'
+        });
+        
         // Mock games data - in a real app this would be fetched from backend
         const allGames: Game[] = [
           {
@@ -94,10 +102,21 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
             duration: '5 min',
             progress: user ? 0 : 0,
             icon: 'speed'
+          },
+          {
+            id: 'daily-challenge',
+            name: `Daily Brain Challenge (${dateString})`,
+            description: 'A new balanced training exercise each day that works on multiple cognitive skills simultaneously',
+            category: 'Balanced',
+            difficulty: 'Adaptive',
+            duration: '10 min',
+            progress: user ? 0 : 0,
+            icon: 'brain'
           }
         ];
         
-        const foundGame = allGames.find(g => g.id === gameId);
+        // Check if the game is the daily challenge, update its name
+        let foundGame = allGames.find(g => g.id === gameId);
         
         if (foundGame) {
           setGame(foundGame);
