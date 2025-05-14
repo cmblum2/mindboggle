@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -7,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Game } from '@/components/GameCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import AuthModal from '@/components/AuthModal';
+import { saveGameResults } from '@/lib/dashboard';
 
 interface GameDetailProps {
   navBarExtension?: React.ReactNode;
@@ -120,7 +122,7 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
     fetchGame();
   }, [gameId, user, navigate, toast]);
   
-  const handleGameComplete = (score: number) => {
+  const handleGameComplete = async (score: number) => {
     // In a real app, this would save the score to backend
     console.log(`Game completed with score: ${score}`);
     
@@ -135,6 +137,46 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
         ...game,
         progress: Math.min(100, game.progress + 25)
       });
+      
+      // Save game results to Supabase based on game category
+      try {
+        let memoryScore = 0;
+        let focusScore = 0;
+        let speedScore = 0;
+        
+        // Determine which cognitive area to update based on game category
+        switch(game.category.toLowerCase()) {
+          case 'memory':
+            memoryScore = score;
+            break;
+          case 'focus':
+            focusScore = score;
+            break;
+          case 'speed':
+            speedScore = score;
+            break;
+          default:
+            // For mixed games, distribute the score
+            memoryScore = Math.round(score / 3);
+            focusScore = Math.round(score / 3);
+            speedScore = Math.round(score / 3);
+        }
+        
+        // Save results to Supabase
+        await saveGameResults(user.id, memoryScore, focusScore, speedScore);
+        
+        toast({
+          title: "Progress saved!",
+          description: "Your game results have been recorded",
+        });
+      } catch (error) {
+        console.error('Failed to save game results:', error);
+        toast({
+          title: "Failed to save results",
+          description: "There was a problem saving your progress",
+          variant: "destructive"
+        });
+      }
     }
   };
   

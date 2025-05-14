@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import NavBar from '@/components/NavBar';
@@ -20,6 +21,7 @@ interface DashboardProps {
 const Dashboard = ({ navBarExtension }: DashboardProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast: toastFromUI } = useToast();
   const [stats, setStats] = useState<UserStats>({
     gamesPlayed: 0,
@@ -34,6 +36,17 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
+  
+  // Force refresh data when coming back from a game
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Effect to detect navigation back to dashboard
+  useEffect(() => {
+    // If we're on the dashboard, increment the refresh key
+    if (location.pathname === '/dashboard') {
+      setRefreshKey(prevKey => prevKey + 1);
+    }
+  }, [location.pathname]);
   
   useEffect(() => {
     // Only redirect if we've confirmed the auth state and the user is not authenticated
@@ -75,7 +88,7 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
       // If this is the first render and we're still checking auth, mark as checked
       setAuthChecked(true);
     }
-  }, [user, navigate, toastFromUI, authChecked]);
+  }, [user, navigate, toastFromUI, authChecked, refreshKey]);
   
   // If we're still loading or checking auth, show a loading state
   if (user === null && !authChecked) {
