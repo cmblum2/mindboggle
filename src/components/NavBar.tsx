@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Brain, GamepadIcon, Home, LogOut, Menu, User } from 'lucide-react';
+import { Brain, GamepadIcon, Home, LogOut, Menu, User, InfoIcon } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 interface NavBarProps {
@@ -43,6 +43,13 @@ const NavBar = ({ isLoggedIn, onLogout, onLogin }: NavBarProps) => {
                 onClick={() => handleNavigation('/')}
               >
                 <Home className="h-5 w-5" /> Home
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="flex items-center justify-start gap-2" 
+                onClick={() => handleNavigation('/info')}
+              >
+                <InfoIcon className="h-5 w-5" /> Info
               </Button>
               {isLoggedIn && (
                 <>
@@ -90,6 +97,14 @@ const NavBar = ({ isLoggedIn, onLogout, onLogin }: NavBarProps) => {
             onClick={() => handleNavigation('/')}
           >
             Home
+          </Button>
+          
+          <Button 
+            variant="ghost" 
+            className="hover:bg-brain-teal/10" 
+            onClick={() => handleNavigation('/info')}
+          >
+            Info
           </Button>
           
           {isLoggedIn ? (
