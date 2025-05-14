@@ -1,127 +1,111 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { toast } from 'sonner';
 
 interface User {
   id: string;
-  name: string;
-  email: string;
+  email?: string;
+  name?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  signup: (email: string, password: string, name: string) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-// Mock authentication service - would be replaced with real auth in production
-const mockLogin = (email: string, password: string): Promise<User> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // Simple validation - in real app would check against a backend
-      if (email && password.length >= 6) {
-        const user: User = {
-          id: 'user-' + Math.random().toString(36).substr(2, 9),
-          name: email.split('@')[0],
-          email
-        };
-        localStorage.setItem('mindboggle_user', JSON.stringify(user));
-        resolve(user);
-      } else {
-        reject(new Error('Invalid credentials'));
-      }
-    }, 1000);
-  });
-};
-
-const mockSignup = (name: string, email: string, password: string): Promise<User> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // Simple validation - in real app would check against a backend
-      if (name && email && password.length >= 6) {
-        const user: User = {
-          id: 'user-' + Math.random().toString(36).substr(2, 9),
-          name,
-          email
-        };
-        localStorage.setItem('mindboggle_user', JSON.stringify(user));
-        resolve(user);
-      } else {
-        reject(new Error('Invalid information'));
-      }
-    }, 1000);
-  });
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
+  // Simulate checking for a user session on mount
   useEffect(() => {
-    // Check local storage for user on mount
-    const storedUser = localStorage.getItem('mindboggle_user');
-    if (storedUser) {
+    const checkAuth = async () => {
       try {
-        setUser(JSON.parse(storedUser));
+        // In a real app, we'd check for a stored session or token
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
       } catch (error) {
-        console.error('Error parsing stored user:', error);
-        localStorage.removeItem('mindboggle_user');
+        console.error('Auth error:', error);
+        // Clear any corrupted data
+        localStorage.removeItem('user');
+      } finally {
+        // Mark auth as checked regardless of outcome
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
+    };
+    
+    checkAuth();
   }, []);
-  
+
+  // Mock login function
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const user = await mockLogin(email, password);
-      setUser(user);
-      toast.success('Welcome back!');
+      // Mock API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // For demo, we'll create a mock user
+      const mockUser = { id: '123', email, name: email.split('@')[0] };
+      
+      // Store user in localStorage
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      setUser(mockUser);
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('Login failed. Please check your credentials.');
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
-  
-  const signup = async (name: string, email: string, password: string) => {
+
+  // Mock signup function
+  const signup = async (email: string, password: string, name: string) => {
     setIsLoading(true);
     try {
-      const user = await mockSignup(name, email, password);
-      setUser(user);
-      toast.success('Account created!');
+      // Mock API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // For demo, create mock user with provided details
+      const mockUser = { id: '123', email, name };
+      
+      // Store user in localStorage
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      setUser(mockUser);
     } catch (error) {
       console.error('Signup error:', error);
-      toast.error('Signup failed. Please try again.');
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
-  
-  const logout = () => {
-    localStorage.removeItem('mindboggle_user');
-    setUser(null);
-    toast.success('Logged out successfully');
-  };
-  
-  return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  // Mock logout function
+  const logout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+  };
+
+  const value = {
+    user,
+    isLoading,
+    login,
+    logout,
+    signup
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

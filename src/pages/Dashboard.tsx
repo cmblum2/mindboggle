@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,9 +26,11 @@ const Dashboard = () => {
   });
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
   
   useEffect(() => {
-    if (!user) {
+    // Only redirect if we've confirmed the auth state and the user is not authenticated
+    if (user === null && authChecked) {
       navigate('/');
       toast({
         title: "Access denied",
@@ -39,33 +40,58 @@ const Dashboard = () => {
       return;
     }
     
-    const loadDashboardData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Fetch user stats
-        const userStats = await getUserStats(user.id);
-        setStats(userStats);
-        
-        // Get game recommendations based on stats
-        const recommendedGames = await getRecommendedGames(userStats);
-        setRecommendations(recommendedGames);
-      } catch (error) {
-        console.error('Failed to load dashboard data:', error);
-        toast({
-          title: "Data loading failed",
-          description: "We couldn't retrieve your latest statistics",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadDashboardData();
-  }, [user, navigate, toast]);
+    // If user is authenticated, proceed with loading data
+    if (user) {
+      setAuthChecked(true);
+      
+      const loadDashboardData = async () => {
+        try {
+          setIsLoading(true);
+          
+          // Fetch user stats
+          const userStats = await getUserStats(user.id);
+          setStats(userStats);
+          
+          // Get game recommendations based on stats
+          const recommendedGames = await getRecommendedGames(userStats);
+          setRecommendations(recommendedGames);
+        } catch (error) {
+          console.error('Failed to load dashboard data:', error);
+          toast({
+            title: "Data loading failed",
+            description: "We couldn't retrieve your latest statistics",
+            variant: "destructive"
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      loadDashboardData();
+    } else if (!authChecked) {
+      // If this is the first render and we're still checking auth, mark as checked
+      setAuthChecked(true);
+    }
+  }, [user, navigate, toast, authChecked]);
   
-  if (!user) {
+  // If we're still loading or checking auth, show a loading state
+  if (user === null && !authChecked) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <NavBar 
+          isLoggedIn={false}
+          onLogout={logout}
+          onLogin={() => {}}
+        />
+        <div className="flex-1 container px-4 py-6 md:py-10 flex items-center justify-center">
+          <Skeleton className="h-24 w-1/2" />
+        </div>
+      </div>
+    );
+  }
+  
+  // Otherwise, if the user is null and we've checked auth, just return null
+  if (user === null) {
     return null; // Will redirect in useEffect
   }
   
