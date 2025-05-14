@@ -41,9 +41,16 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   
   // Check if we should refresh stats (coming from game completion)
   useEffect(() => {
-    if (location.state?.refreshStats) {
-      // Clear the state to prevent future rerenders
-      window.history.replaceState({}, document.title);
+    // Check both location state and sessionStorage
+    const shouldRefresh = location.state?.refreshStats || sessionStorage.getItem('refreshStats') === 'true';
+    
+    if (shouldRefresh) {
+      // Clear the sessionStorage flag
+      sessionStorage.removeItem('refreshStats');
+      // Clear the location state
+      if (location.state?.refreshStats) {
+        window.history.replaceState({}, document.title);
+      }
       // Trigger refresh
       setRefreshKey(prevKey => prevKey + 1);
     }

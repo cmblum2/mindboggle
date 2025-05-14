@@ -106,13 +106,18 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
         // Save results to database
         await saveGameResults(user.id, memoryScore, focusScore, speedScore);
         toast.success("Game progress saved!");
+        
+        // Signal that stats should be updated, but we won't navigate away
+        onComplete(state.score);
       } catch (error) {
         console.error("Error saving game results:", error);
         toast.error("Couldn't save your progress");
       }
+    } else {
+      // Still call onComplete to update UI as needed
+      onComplete(state.score);
     }
     
-    onComplete(state.score);
     uiToast({
       title: "Game complete!",
       description: `You scored ${state.score} points.`

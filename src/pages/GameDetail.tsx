@@ -21,6 +21,7 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [statsUpdated, setStatsUpdated] = useState(false);
   
   useEffect(() => {
     if (!gameId) {
@@ -138,8 +139,14 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
       });
     }
     
-    // Navigate back to dashboard with an indicator that stats should refresh
-    navigate('/dashboard', { state: { refreshStats: true } });
+    // Mark stats as updated so dashboard can refresh when user navigates there
+    setStatsUpdated(true);
+    
+    // Store the refresh flag in sessionStorage so dashboard can detect it
+    sessionStorage.setItem('refreshStats', 'true');
+    
+    // We don't navigate away automatically - user will stay on the feedback page
+    // The FeedbackPanel in MiniGame will handle navigation when user clicks "Continue"
   };
   
   if (!gameId) {
