@@ -9,6 +9,63 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cognitive_performance: {
+        Row: {
+          date: string
+          focus_score: number
+          id: string
+          memory_score: number
+          overall_score: number
+          speed_score: number
+          user_id: string
+        }
+        Insert: {
+          date?: string
+          focus_score: number
+          id?: string
+          memory_score: number
+          overall_score: number
+          speed_score: number
+          user_id: string
+        }
+        Update: {
+          date?: string
+          focus_score?: number
+          id?: string
+          memory_score?: number
+          overall_score?: number
+          speed_score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_challenges: {
+        Row: {
+          challenge_type: string
+          completed: boolean
+          date: string
+          description: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          challenge_type: string
+          completed?: boolean
+          date?: string
+          description: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          challenge_type?: string
+          completed?: boolean
+          date?: string
+          description?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
