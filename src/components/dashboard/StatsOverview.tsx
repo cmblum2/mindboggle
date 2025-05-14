@@ -18,7 +18,7 @@ const StatsOverview = ({ stats, isLoading }: StatsOverviewProps) => {
   return (
     <div className="grid gap-4 md:grid-cols-4 mb-8">
       <StatCard 
-        title="Games Played" 
+        title="Total Games" 
         value={stats.gamesPlayed.toString()} 
         icon={<GamepadIcon className="h-8 w-8 mb-2 text-brain-purple" />}
         isLoading={isLoading}
@@ -32,7 +32,7 @@ const StatsOverview = ({ stats, isLoading }: StatsOverviewProps) => {
       />
       
       <StatCard 
-        title="Total Points" 
+        title="Avg Score" 
         value={stats.overallScore.toString()} 
         icon={<Award className="h-8 w-8 mb-2 text-brain-coral" />}
         isLoading={isLoading}

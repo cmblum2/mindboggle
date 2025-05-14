@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UserStats {
@@ -29,8 +28,7 @@ export const getUserStats = async (userId: string): Promise<UserStats> => {
       .from('cognitive_performance')
       .select('*')
       .eq('user_id', userId)
-      .order('date', { ascending: false })
-      .limit(10);
+      .order('date', { ascending: false });
 
     if (error) {
       console.error("Error fetching user stats:", error);
@@ -51,18 +49,37 @@ export const getUserStats = async (userId: string): Promise<UserStats> => {
       };
     }
 
-    // Calculate stats from the performance data
-    const latestRecord = performanceData[0];
+    // Calculate all-time stats using averages and totals
     const gamesPlayed = performanceData.length;
     const streak = calculateStreak(performanceData);
+    const latestRecord = performanceData[0]; // For last played date
+    
+    // Calculate aggregate scores using all game data
+    let totalMemoryScore = 0;
+    let totalFocusScore = 0;
+    let totalSpeedScore = 0;
+    let totalOverallScore = 0;
+    
+    performanceData.forEach(record => {
+      totalMemoryScore += record.memory_score;
+      totalFocusScore += record.focus_score;
+      totalSpeedScore += record.speed_score;
+      totalOverallScore += record.overall_score;
+    });
+    
+    // Calculate all-time averages
+    const memoryScore = Math.round(totalMemoryScore / gamesPlayed);
+    const focusScore = Math.round(totalFocusScore / gamesPlayed);
+    const speedScore = Math.round(totalSpeedScore / gamesPlayed);
+    const overallScore = Math.round(totalOverallScore / gamesPlayed);
     
     return {
       gamesPlayed,
       streak,
-      overallScore: latestRecord.overall_score,
-      memoryScore: latestRecord.memory_score,
-      focusScore: latestRecord.focus_score,
-      speedScore: latestRecord.speed_score,
+      overallScore,
+      memoryScore,
+      focusScore,
+      speedScore,
       progress: calculateProgress(performanceData),
       lastPlayed: new Date(latestRecord.date)
     };
@@ -155,17 +172,29 @@ const calculateStreak = (performanceData: any[]): number => {
 const calculateProgress = (performanceData: any[]): number => {
   if (!performanceData || performanceData.length < 2) return 0;
   
+  // For all-time progress, we'll compare the average of first 3 games
+  // to the average of last 3 games (or fewer if not enough games)
+  
   // Sort by date ascending
   const sortedData = [...performanceData].sort((a, b) => 
     new Date(a.date).getTime() - new Date(b.date).getTime()
   );
   
-  const firstScore = sortedData[0].overall_score;
-  const latestScore = sortedData[sortedData.length - 1].overall_score;
+  // Get first games (up to 3)
+  const firstGamesCount = Math.min(3, Math.floor(sortedData.length / 3));
+  const firstGames = sortedData.slice(0, firstGamesCount);
+  
+  // Get last games (up to 3)
+  const lastGamesCount = Math.min(3, Math.floor(sortedData.length / 3));
+  const lastGames = sortedData.slice(-lastGamesCount);
+  
+  // Calculate averages
+  const firstAverage = firstGames.reduce((sum, game) => sum + game.overall_score, 0) / firstGamesCount;
+  const lastAverage = lastGames.reduce((sum, game) => sum + game.overall_score, 0) / lastGamesCount;
   
   // Calculate improvement percentage (capped at 100%)
-  const improvement = latestScore - firstScore;
-  return Math.min(Math.max(Math.round((improvement / firstScore) * 100), 0), 100);
+  const improvement = lastAverage - firstAverage;
+  return Math.min(Math.max(Math.round((improvement / Math.max(firstAverage, 1)) * 100), 0), 100);
 };
 
 /**

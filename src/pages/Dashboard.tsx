@@ -65,7 +65,7 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
       try {
         setIsLoading(true);
         
-        // Fetch user stats
+        // Fetch user stats (now with all-time averages)
         const userStats = await getUserStats(user.id);
         setStats(userStats);
         
