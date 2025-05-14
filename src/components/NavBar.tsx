@@ -23,7 +23,7 @@ const NavBar = ({ isLoggedIn, onLogout, onLogin }: NavBarProps) => {
   return (
     <header className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-md border-b border-brain-teal/10">
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2" onClick={() => navigate('/')}>
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigation('/')}>
           <Brain className="h-7 w-7 text-brain-purple" />
           <span className="font-bold text-xl tracking-tight">MindBoggle</span>
         </div>
@@ -87,7 +87,7 @@ const NavBar = ({ isLoggedIn, onLogout, onLogin }: NavBarProps) => {
           <Button 
             variant="ghost" 
             className="hover:bg-brain-teal/10" 
-            onClick={() => navigate('/')}
+            onClick={() => handleNavigation('/')}
           >
             Home
           </Button>
@@ -97,14 +97,14 @@ const NavBar = ({ isLoggedIn, onLogout, onLogin }: NavBarProps) => {
               <Button 
                 variant="ghost" 
                 className="hover:bg-brain-teal/10" 
-                onClick={() => navigate('/dashboard')}
+                onClick={() => handleNavigation('/dashboard')}
               >
                 Dashboard
               </Button>
               <Button 
                 variant="ghost" 
                 className="hover:bg-brain-teal/10" 
-                onClick={() => navigate('/games')}
+                onClick={() => handleNavigation('/games')}
               >
                 Games
               </Button>
