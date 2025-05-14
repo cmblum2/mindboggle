@@ -84,7 +84,6 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
         <NavBar 
           isLoggedIn={false}
           onLogout={logout}
-          onLogin={() => {}}
           extension={navBarExtension}
         />
         <div className="flex-1 container px-4 py-6 md:py-10 flex items-center justify-center">
@@ -113,7 +112,6 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
       <NavBar 
         isLoggedIn={true}
         onLogout={logout}
-        onLogin={() => {}}
         extension={navBarExtension}
       />
       

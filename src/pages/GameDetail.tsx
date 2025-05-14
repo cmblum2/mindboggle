@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -15,7 +14,7 @@ interface GameDetailProps {
 
 const GameDetail = ({ navBarExtension }: GameDetailProps) => {
   const { gameId } = useParams<{ gameId: string }>();
-  const { user, login, signup, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [game, setGame] = useState<Game | null>(null);
@@ -148,7 +147,6 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
       <NavBar 
         isLoggedIn={!!user}
         onLogout={logout}
-        onLogin={() => setShowAuthModal(true)}
         extension={navBarExtension}
       />
       
@@ -181,8 +179,6 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        onLogin={login}
-        onSignup={signup}
       />
     </div>
   );

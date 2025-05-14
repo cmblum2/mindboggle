@@ -46,7 +46,6 @@ const Index = ({ navBarExtension }: IndexProps) => {
       <NavBar 
         isLoggedIn={!!user}
         onLogout={logout}
-        onLogin={() => {}}
         extension={navBarExtension}
       />
       
@@ -106,7 +105,10 @@ const Index = ({ navBarExtension }: IndexProps) => {
                           <div className="w-full bg-muted-foreground/20 rounded-full h-2">
                             <div className="h-2 rounded-full bg-gradient-to-r from-brain-purple to-brain-teal" style={{ width: '65%' }}></div>
                           </div>
-                          <div className="mt-1 text-xs text-muted-foreground">2/3 brain games complete</div>
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            {user.name ? `${user.name}'s progress: ` : ''}
+                            2/3 brain games complete
+                          </div>
                         </div>
                       </div>
                     </div>
