@@ -12,7 +12,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<void>;
 }
 
@@ -107,10 +107,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Logout function
   const logout = async () => {
+    setIsLoading(true);
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     } catch (error) {
       console.error('Logout error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 

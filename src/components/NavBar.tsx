@@ -22,6 +22,13 @@ const NavBar = ({ isLoggedIn, onLogout, extension }: NavBarProps) => {
     setIsOpen(false);
   };
   
+  const handleLogout = async () => {
+    await onLogout();
+    // After logout, navigate home
+    navigate('/');
+    setIsOpen(false);
+  };
+  
   return (
     <header className="sticky top-0 z-50 w-full bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b border-brain-teal/10">
       <div className="container flex h-16 items-center justify-between">
@@ -72,7 +79,7 @@ const NavBar = ({ isLoggedIn, onLogout, extension }: NavBarProps) => {
                   <Button 
                     variant="ghost" 
                     className="flex items-center justify-start gap-2" 
-                    onClick={onLogout}
+                    onClick={handleLogout}
                   >
                     <LogOut className="h-5 w-5" /> Logout
                   </Button>
@@ -128,7 +135,7 @@ const NavBar = ({ isLoggedIn, onLogout, extension }: NavBarProps) => {
               </Button>
               <Button 
                 variant="outline" 
-                onClick={onLogout}
+                onClick={handleLogout}
               >
                 Logout
               </Button>

@@ -87,7 +87,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     setLoading(true);
     
     try {
-      await signup(name, email, password);
+      await signup(email, password, name);
       toast({
         title: "Account created!",
         description: "Welcome to MindBoggle. Please check your email for verification.",
@@ -161,6 +161,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                 type="submit" 
                 className="w-full bg-gradient-to-r from-brain-purple to-brain-teal text-white"
                 disabled={loading}
+                data-login-button
               >
                 {loading ? "Logging in..." : "Login"}
               </Button>
@@ -206,6 +207,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                 type="submit" 
                 className="w-full bg-gradient-to-r from-brain-purple to-brain-teal text-white"
                 disabled={loading}
+                data-signup-button
               >
                 {loading ? "Creating account..." : "Create Account"}
               </Button>

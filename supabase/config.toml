@@ -1,1 +1,56 @@
+
 project_id = "qpotorhyucwrivwdzelp"
+
+[auth.external.apple]
+enabled = false
+
+[auth.external.azure]
+enabled = false
+
+[auth.external.bitbucket]
+enabled = false
+
+[auth.external.discord]
+enabled = false
+
+[auth.external.facebook]
+enabled = false
+
+[auth.external.github]
+enabled = false
+
+[auth.external.gitlab]
+enabled = false
+
+[auth.external.google]
+enabled = false
+
+[auth.external.keycloak]
+enabled = false
+
+[auth.external.linkedin]
+enabled = false
+
+[auth.external.notion]
+enabled = false
+
+[auth.external.spotify]
+enabled = false
+
+[auth.external.slack]
+enabled = false
+
+[auth.external.twitch]
+enabled = false
+
+[auth.external.twitter]
+enabled = false
+
+[auth.external.workos]
+enabled = false
+
+[auth.external.zoom]
+enabled = false
+
+[auth.external.azuread]
+enabled = false
