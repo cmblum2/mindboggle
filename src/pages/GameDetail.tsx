@@ -108,10 +108,12 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
             name: `Daily Brain Challenge (${dateString})`,
             description: 'A new balanced training exercise each day that works on multiple cognitive skills simultaneously',
             category: 'Balanced',
-            difficulty: 'Adaptive',
+            difficulty: 'Medium', // Changed from 'Adaptive' to valid type 'Medium'
             duration: '10 min',
             progress: user ? 0 : 0,
-            icon: 'brain'
+            icon: 'focus', // Changed from 'brain' to valid type 'focus'
+            brainTarget: 'Multiple Brain Regions',
+            cognitiveHealth: 'Provides comprehensive training across memory, attention, processing speed and executive function areas simultaneously.'
           }
         ];
         
