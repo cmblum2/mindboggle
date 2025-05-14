@@ -1,10 +1,8 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Brain, GamepadIcon, Star } from 'lucide-react';
 import NavBar from '@/components/NavBar';
-import AuthModal from '@/components/AuthModal';
 import { useAuth } from '@/hooks/useAuth';
 
 interface IndexProps {
@@ -13,14 +11,11 @@ interface IndexProps {
 
 const Index = ({ navBarExtension }: IndexProps) => {
   const { user, login, signup, logout } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const navigate = useNavigate();
   
   const handleGetStarted = () => {
     if (user) {
       navigate('/dashboard');
-    } else {
-      setShowAuthModal(true);
     }
   };
   
@@ -29,7 +24,7 @@ const Index = ({ navBarExtension }: IndexProps) => {
       <NavBar 
         isLoggedIn={!!user}
         onLogout={logout}
-        onLogin={() => setShowAuthModal(true)}
+        onLogin={() => {}}
         extension={navBarExtension}
       />
       
@@ -140,13 +135,6 @@ const Index = ({ navBarExtension }: IndexProps) => {
           </div>
         </section>
       </main>
-      
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onLogin={login}
-        onSignup={signup}
-      />
     </div>
   );
 };

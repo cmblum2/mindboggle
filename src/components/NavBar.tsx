@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Brain, GamepadIcon, Home, LogOut, Menu, User, InfoIcon } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import AuthModal from '@/components/AuthModal';
 
 interface NavBarProps {
   isLoggedIn: boolean;
@@ -15,10 +16,16 @@ interface NavBarProps {
 const NavBar = ({ isLoggedIn, onLogout, onLogin, extension }: NavBarProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleNavigation = (path: string) => {
     navigate(path);
     setIsOpen(false);
+  };
+  
+  const handleLoginClick = () => {
+    setShowAuthModal(true);
+    onLogin();
   };
   
   return (
@@ -81,7 +88,7 @@ const NavBar = ({ isLoggedIn, onLogout, onLogin, extension }: NavBarProps) => {
                 <Button 
                   variant="default" 
                   className="bg-gradient-to-r from-brain-purple to-brain-teal text-white" 
-                  onClick={onLogin}
+                  onClick={() => setShowAuthModal(true)}
                 >
                   Get Started
                 </Button>
@@ -134,7 +141,7 @@ const NavBar = ({ isLoggedIn, onLogout, onLogin, extension }: NavBarProps) => {
           ) : (
             <Button 
               className="bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white"
-              onClick={onLogin}
+              onClick={() => setShowAuthModal(true)}
             >
               Get Started
             </Button>
@@ -144,6 +151,20 @@ const NavBar = ({ isLoggedIn, onLogout, onLogin, extension }: NavBarProps) => {
           {extension}
         </nav>
       </div>
+      
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLogin={(email, password) => {
+          onLogin();
+          setShowAuthModal(false);
+        }}
+        onSignup={(name, email, password) => {
+          onLogin();
+          setShowAuthModal(false);
+        }}
+      />
     </header>
   );
 };
