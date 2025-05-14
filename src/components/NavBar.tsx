@@ -9,11 +9,10 @@ import AuthModal from '@/components/AuthModal';
 interface NavBarProps {
   isLoggedIn: boolean;
   onLogout: () => void;
-  onLogin: () => void;
   extension?: React.ReactNode;
 }
 
-const NavBar = ({ isLoggedIn, onLogout, onLogin, extension }: NavBarProps) => {
+const NavBar = ({ isLoggedIn, onLogout, extension }: NavBarProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -21,11 +20,6 @@ const NavBar = ({ isLoggedIn, onLogout, onLogin, extension }: NavBarProps) => {
   const handleNavigation = (path: string) => {
     navigate(path);
     setIsOpen(false);
-  };
-  
-  const handleLoginClick = () => {
-    setShowAuthModal(true);
-    onLogin();
   };
   
   return (
@@ -158,14 +152,6 @@ const NavBar = ({ isLoggedIn, onLogout, onLogin, extension }: NavBarProps) => {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        onLogin={(email, password) => {
-          onLogin();
-          setShowAuthModal(false);
-        }}
-        onSignup={(name, email, password) => {
-          onLogin();
-          setShowAuthModal(false);
-        }}
       />
     </header>
   );

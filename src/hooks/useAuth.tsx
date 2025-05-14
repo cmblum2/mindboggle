@@ -1,5 +1,6 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface User {
   id: string;
@@ -29,41 +30,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simulate checking for a user session on mount
+  // Check for existing session and set up auth state listener
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // In a real app, we'd check for a stored session or token
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
+    // First set up the auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        if (session?.user) {
+          const { id, email } = session.user;
+          const name = session.user.user_metadata?.name || email?.split('@')[0] || '';
+          setUser({ id, email, name });
+        } else {
+          setUser(null);
         }
-      } catch (error) {
-        console.error('Auth error:', error);
-        // Clear any corrupted data
-        localStorage.removeItem('user');
-      } finally {
-        // Mark auth as checked regardless of outcome
         setIsLoading(false);
       }
+    );
+
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.id);
+      if (session?.user) {
+        const { id, email } = session.user;
+        const name = session.user.user_metadata?.name || email?.split('@')[0] || '';
+        setUser({ id, email, name });
+      }
+      setIsLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
     };
-    
-    checkAuth();
   }, []);
 
-  // Mock login function
+  // Login function
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Mock API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      // For demo, we'll create a mock user
-      const mockUser = { id: '123', email, name: email.split('@')[0] };
+      if (error) throw error;
       
-      // Store user in localStorage
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -72,19 +83,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Mock signup function
+  // Signup function
   const signup = async (email: string, password: string, name: string) => {
     setIsLoading(true);
     try {
-      // Mock API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name }
+        }
+      });
       
-      // For demo, create mock user with provided details
-      const mockUser = { id: '123', email, name };
+      if (error) throw error;
       
-      // Store user in localStorage
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
     } catch (error) {
       console.error('Signup error:', error);
       throw error;
@@ -93,10 +105,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Mock logout function
-  const logout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
+  // Logout function
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const value = {

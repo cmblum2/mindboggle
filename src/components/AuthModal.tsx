@@ -12,15 +12,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (email: string, password: string) => void;
-  onSignup: (name: string, email: string, password: string) => void;
 }
 
-const AuthModal = ({ isOpen, onClose, onLogin, onSignup }: AuthModalProps) => {
+const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [activeTab, setActiveTab] = useState('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -28,6 +27,7 @@ const AuthModal = ({ isOpen, onClose, onLogin, onSignup }: AuthModalProps) => {
   const [loading, setLoading] = useState(false);
   
   const { toast } = useToast();
+  const { login, signup } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,18 +44,18 @@ const AuthModal = ({ isOpen, onClose, onLogin, onSignup }: AuthModalProps) => {
     setLoading(true);
     
     try {
-      await onLogin(email, password);
+      await login(email, password);
       toast({
         title: "Welcome back!",
         description: "Successfully logged in.",
       });
       resetForm();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
       toast({
         title: "Login failed",
-        description: "Please check your credentials and try again.",
+        description: error?.message || "Please check your credentials and try again.",
         variant: "destructive",
       });
     } finally {
@@ -87,18 +87,18 @@ const AuthModal = ({ isOpen, onClose, onLogin, onSignup }: AuthModalProps) => {
     setLoading(true);
     
     try {
-      await onSignup(name, email, password);
+      await signup(name, email, password);
       toast({
         title: "Account created!",
-        description: "Welcome to MindBoggle.",
+        description: "Welcome to MindBoggle. Please check your email for verification.",
       });
       resetForm();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Signup error:", error);
       toast({
         title: "Signup failed",
-        description: "Please try again with a different email.",
+        description: error?.message || "Please try again with a different email.",
         variant: "destructive",
       });
     } finally {
