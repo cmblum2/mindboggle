@@ -12,6 +12,7 @@ import GameDetail from "./pages/GameDetail";
 import NotFound from "./pages/NotFound";
 import Info from "./pages/Info";
 import NavBarExtension from "./components/NavBarExtension";
+import BackgroundDecoration from "./components/BackgroundDecoration";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,27 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Add global animations and transitions
+const AppContent = () => {
+  return (
+    <>
+      <BackgroundDecoration />
+      <Routes>
+        <Route path="/" element={<Index navBarExtension={<NavBarExtension />} />} />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard navBarExtension={<NavBarExtension />} />
+          </ProtectedRoute>
+        } />
+        <Route path="/games" element={<Games navBarExtension={<NavBarExtension />} />} />
+        <Route path="/game/:gameId" element={<GameDetail navBarExtension={<NavBarExtension />} />} />
+        <Route path="/info" element={<Info navBarExtension={<NavBarExtension />} />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -40,18 +62,9 @@ const App = () => (
       <Sonner />
       <AuthProvider>
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index navBarExtension={<NavBarExtension />} />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard navBarExtension={<NavBarExtension />} />
-              </ProtectedRoute>
-            } />
-            <Route path="/games" element={<Games navBarExtension={<NavBarExtension />} />} />
-            <Route path="/game/:gameId" element={<GameDetail navBarExtension={<NavBarExtension />} />} />
-            <Route path="/info" element={<Info navBarExtension={<NavBarExtension />} />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <div className="transition-opacity duration-300 animate-scale-in">
+            <AppContent />
+          </div>
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>

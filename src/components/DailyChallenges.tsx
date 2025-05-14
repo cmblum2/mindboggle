@@ -7,6 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from "sonner";
 import { DailyChallenge, getDailyChallenges, updateChallengeStatus } from '@/lib/dashboard';
 import { useAuth } from '@/hooks/useAuth';
+import AnimateOnScroll from '@/components/AnimateOnScroll';
+import { fadeIn, fadeInLeft, pulseOnHover } from '@/lib/animate';
 
 interface DailyChallengesProps {
   userId: string;
@@ -16,6 +18,7 @@ interface DailyChallengesProps {
 const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) => {
   const [challenges, setChallenges] = useState<DailyChallenge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeChallenge, setActiveChallenge] = useState<string | null>(null);
   
   useEffect(() => {
     const loadChallenges = async () => {
@@ -89,60 +92,71 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
   const totalChallenges = challenges.length;
   
   return (
-    <Card className="border-brain-teal/20">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-md font-medium flex items-center gap-2">
-          <CalendarDays className="h-5 w-5 text-brain-teal" />
-          Daily Challenges
-        </CardTitle>
-        <div className="text-sm text-muted-foreground">
-          {completedChallenges}/{totalChallenges} completed
-        </div>
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <>
-            <Skeleton className="h-14 w-full mb-3" />
-            <Skeleton className="h-14 w-full mb-3" />
-            <Skeleton className="h-14 w-full" />
-          </>
-        ) : challenges.length > 0 ? (
-          <div className="space-y-3">
-            {challenges.map(challenge => (
-              <div 
-                key={challenge.id}
-                className={`flex items-center justify-between p-3 rounded-lg border ${
-                  challenge.completed ? 'bg-muted/50' : ''
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  {getChallengeIcon(challenge.challengeType)}
-                  <div className={challenge.completed ? 'text-muted-foreground' : ''}>
-                    {challenge.description}
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 rounded-full"
-                  onClick={() => handleToggleChallenge(challenge.id, challenge.completed)}
+    <AnimateOnScroll animation={fadeIn(100)} className="w-full">
+      <Card className="border-brain-teal/20 transition-all duration-300">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-md font-medium flex items-center gap-2">
+            <CalendarDays className="h-5 w-5 text-brain-teal animate-pulse-soft" />
+            Daily Challenges
+          </CardTitle>
+          <div className="text-sm text-muted-foreground">
+            {completedChallenges}/{totalChallenges} completed
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <>
+              <Skeleton className="h-14 w-full mb-3" />
+              <Skeleton className="h-14 w-full mb-3" />
+              <Skeleton className="h-14 w-full" />
+            </>
+          ) : challenges.length > 0 ? (
+            <div className="space-y-3">
+              {challenges.map((challenge, index) => (
+                <AnimateOnScroll
+                  key={challenge.id}
+                  animation={fadeInLeft(index * 100)}
+                  className="w-full"
                 >
-                  {challenge.completed ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <Circle className="h-5 w-5" />
-                  )}
-                </Button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-6 text-muted-foreground">
-            No challenges available today
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                  <div 
+                    className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-300 ${
+                      challenge.completed ? 'bg-muted/50' : ''
+                    } ${activeChallenge === challenge.id ? 'shadow-md transform -translate-y-0.5' : ''}`}
+                    onMouseEnter={() => setActiveChallenge(challenge.id)}
+                    onMouseLeave={() => setActiveChallenge(null)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="transition-transform duration-300 transform-gpu">
+                        {getChallengeIcon(challenge.challengeType)}
+                      </div>
+                      <div className={challenge.completed ? 'text-muted-foreground' : ''}>
+                        {challenge.description}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`h-8 w-8 p-0 rounded-full ${pulseOnHover()}`}
+                      onClick={() => handleToggleChallenge(challenge.id, challenge.completed)}
+                    >
+                      {challenge.completed ? (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <Circle className={`h-5 w-5 ${activeChallenge === challenge.id ? 'text-brain-teal' : ''}`} />
+                      )}
+                    </Button>
+                  </div>
+                </AnimateOnScroll>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 text-muted-foreground">
+              No challenges available today
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </AnimateOnScroll>
   );
 };
 
