@@ -2,10 +2,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GamepadIcon, Home, LogOut, Menu, User, InfoIcon } from 'lucide-react';
+import { Brain, GamepadIcon, Home, LogOut, Menu, User, InfoIcon } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import AuthModal from '@/components/AuthModal';
-import Logo from '@/components/Logo';
 
 interface NavBarProps {
   isLoggedIn: boolean;
@@ -34,7 +33,8 @@ const NavBar = ({ isLoggedIn, onLogout, extension }: NavBarProps) => {
     <header className="sticky top-0 z-50 w-full bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b border-brain-teal/10">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigation('/')}>
-          <Logo />
+          <Brain className="h-7 w-7 text-brain-purple" />
+          <span className="font-bold text-xl tracking-tight">MindBoggle</span>
         </div>
         
         {/* Mobile menu */}
