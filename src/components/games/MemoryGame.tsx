@@ -22,6 +22,7 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
   const [matches, setMatches] = useState(0);
   const [score, setScore] = useState(0);
   const [moves, setMoves] = useState(0);
+  const [pairCount, setPairCount] = useState(6); // Add pairCount state
 
   // Initialize the game
   useEffect(() => {
@@ -30,15 +31,17 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
 
   const initGame = () => {
     // Determine number of pairs based on difficulty
-    let pairCount = 6; // default for easy
-    if (difficulty === 'medium') pairCount = 8;
-    if (difficulty === 'hard') pairCount = 12;
+    let newPairCount = 6; // default for easy
+    if (difficulty === 'medium') newPairCount = 8;
+    if (difficulty === 'hard') newPairCount = 12;
+    
+    setPairCount(newPairCount);
 
     // All possible symbols
     const symbols = ['🍎', '🍌', '🍇', '🍊', '🍓', '🍉', '🍒', '🥝', '🍍', '🥭', '🍑', '🥥'];
     
     // Select symbols based on difficulty
-    const selectedSymbols = symbols.slice(0, pairCount);
+    const selectedSymbols = symbols.slice(0, newPairCount);
     
     // Create pairs and shuffle
     const cardPairs = [...selectedSymbols, ...selectedSymbols]
@@ -94,7 +97,8 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
           );
           setCards(matchedCards);
           setFlippedCards([]);
-          setMatches(prevMatches => prevMatches + 1);
+          const newMatches = matches + 1;
+          setMatches(newMatches);
           
           // Update score - give more points for fewer moves
           const newScore = score + 10;
@@ -102,7 +106,7 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
           onScoreChange(newScore);
           
           // Check if game is complete
-          if (matches + 1 === pairCount) {
+          if (newMatches === pairCount) {
             // All pairs found
             setTimeout(() => {
               onGameEnd();
@@ -124,6 +128,13 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
     }
   };
 
+  // Determine grid columns based on difficulty
+  const getGridColumns = () => {
+    if (difficulty === 'easy') return 'grid-cols-4';
+    if (difficulty === 'medium') return 'grid-cols-4';
+    return 'grid-cols-6'; // hard difficulty
+  };
+
   return (
     <div className="memory-game">
       <div className="flex justify-between mb-4">
@@ -131,7 +142,7 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
         <div className="font-medium">Score: {score}</div>
       </div>
       
-      <div className="grid grid-cols-4 gap-3">
+      <div className={`grid ${getGridColumns()} gap-3`}>
         {cards.map(card => (
           <Card 
             key={card.id}
