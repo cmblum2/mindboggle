@@ -39,16 +39,12 @@ const Index = ({ navBarExtension }: IndexProps) => {
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
               <div className="space-y-4">
-                <div className="inline-block rounded-lg bg-brain-purple/10 px-3 py-1 text-sm text-brain-purple dark:bg-brain-purple/20">
-                  Backed by Neuroscience
-                </div>
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
                   Train Your Brain.
                   <span className="text-gradient"> Stay Sharp.</span>
                 </h1>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                  MindBoggle offers personalized brain exercises based on the Bredesen Protocol 
-                  with AI-powered feedback to help maintain cognitive health.
+                  MindBoggle offers personalized brain exercises with AI-powered feedback to help maintain cognitive health.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button
