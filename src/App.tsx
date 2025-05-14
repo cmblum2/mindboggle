@@ -20,14 +20,12 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
-  // If auth is still loading, show loading spinner
+  // If auth is still loading, show nothing (or could show a loading spinner)
   if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brain-purple"></div>
-    </div>;
+    return null;
   }
   
-  // If user is not authenticated after loading completes, redirect to home
+  // If user is not authenticated, redirect to home
   if (!user) {
     return <Navigate to="/" replace />;
   }

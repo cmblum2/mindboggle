@@ -1,13 +1,12 @@
-
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import NavBar from '@/components/NavBar';
 import { useToast } from '@/hooks/use-toast';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { getUserStats, getRecommendedGames, UserStats, saveGameResults } from '@/lib/dashboard';
+import { getUserStats, getRecommendedGames, UserStats } from '@/lib/dashboard';
 import DailyChallenges from '@/components/DailyChallenges';
 import TrainingPlan from '@/components/TrainingPlan';
 import StatsOverview from '@/components/dashboard/StatsOverview';
@@ -19,9 +18,8 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ navBarExtension }: DashboardProps) => {
-  const { user, logout } = useAuth(); // No need to track isLoading here, it's handled in ProtectedRoute
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast: toastFromUI } = useToast();
   const [stats, setStats] = useState<UserStats>({
     gamesPlayed: 0,
@@ -35,21 +33,24 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   });
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
   
-  // Force refresh data when coming back from a game
-  const [refreshKey, setRefreshKey] = useState(0);
-  
-  // Effect to detect navigation back to dashboard
   useEffect(() => {
-    // If we're on the dashboard, increment the refresh key
-    if (location.pathname === '/dashboard') {
-      setRefreshKey(prevKey => prevKey + 1);
+    // Only redirect if we've confirmed the auth state and the user is not authenticated
+    if (user === null && authChecked) {
+      navigate('/');
+      toastFromUI({
+        title: "Access denied",
+        description: "Please log in to access your dashboard",
+        variant: "destructive"
+      });
+      return;
     }
-  }, [location.pathname]);
-  
-  useEffect(() => {
-    // User should always be available due to ProtectedRoute
+    
+    // If user is authenticated, proceed with loading data
     if (user) {
+      setAuthChecked(true);
+      
       const loadDashboardData = async () => {
         try {
           setIsLoading(true);
@@ -70,8 +71,32 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
       };
       
       loadDashboardData();
+    } else if (!authChecked) {
+      // If this is the first render and we're still checking auth, mark as checked
+      setAuthChecked(true);
     }
-  }, [user, toastFromUI, refreshKey]);
+  }, [user, navigate, toastFromUI, authChecked]);
+  
+  // If we're still loading or checking auth, show a loading state
+  if (user === null && !authChecked) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <NavBar 
+          isLoggedIn={false}
+          onLogout={logout}
+          extension={navBarExtension}
+        />
+        <div className="flex-1 container px-4 py-6 md:py-10 flex items-center justify-center">
+          <Skeleton className="h-24 w-1/2" />
+        </div>
+      </div>
+    );
+  }
+  
+  // Otherwise, if the user is null and we've checked auth, just return null
+  if (user === null) {
+    return null; // Will redirect in useEffect
+  }
   
   const handleChallengeComplete = () => {
     // Refresh stats when a challenge is completed
@@ -82,11 +107,10 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
     }
   };
   
-  // User should never be null here due to ProtectedRoute wrapper
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar 
-        isLoggedIn={!!user}
+        isLoggedIn={true}
         onLogout={logout}
         extension={navBarExtension}
       />
@@ -95,7 +119,7 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
         {/* Header with welcome message and play button */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold mb-1">Welcome, {user?.name || user?.email?.split('@')[0]}!</h1>
+            <h1 className="text-3xl font-bold mb-1">Welcome, {user.name || user.email?.split('@')[0]}!</h1>
             <p className="text-muted-foreground">Track your cognitive fitness journey</p>
           </div>
           <Button 
