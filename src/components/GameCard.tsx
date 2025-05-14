@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Brain, GamepadIcon, Clock, Star, BrainCircuit, BrainCog } from 'lucide-react';
@@ -138,6 +139,8 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+        onLogin={login}
+        onSignup={signup}
       />
     </div>
   );
