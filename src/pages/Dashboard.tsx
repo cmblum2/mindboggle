@@ -19,7 +19,7 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ navBarExtension }: DashboardProps) => {
-  const { user, logout, isLoading: authLoading } = useAuth();
+  const { user, logout } = useAuth(); // No need to track isLoading here, it's handled in ProtectedRoute
   const navigate = useNavigate();
   const location = useLocation();
   const { toast: toastFromUI } = useToast();
@@ -48,29 +48,8 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   }, [location.pathname]);
   
   useEffect(() => {
-    // Only proceed with loading data if we have a user and are not currently loading auth state
-    if (!user && !authLoading) {
-      // Only redirect if auth is finished loading and there's no user
-      console.log("No user found and auth loading completed, redirecting to home");
-      navigate('/');
-      toastFromUI({
-        title: "Access denied",
-        description: "Please log in to access your dashboard",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // If authentication is still loading, don't do anything yet
-    if (authLoading) {
-      console.log("Auth is still loading, waiting...");
-      return;
-    }
-    
-    // If user is authenticated, proceed with loading data
+    // User should always be available due to ProtectedRoute
     if (user) {
-      console.log("User authenticated, loading dashboard data");
-      
       const loadDashboardData = async () => {
         try {
           setIsLoading(true);
@@ -92,28 +71,7 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
       
       loadDashboardData();
     }
-  }, [user, navigate, toastFromUI, authLoading, refreshKey]);
-  
-  // If we're still loading auth, show a loading state
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <NavBar 
-          isLoggedIn={false}
-          onLogout={logout}
-          extension={navBarExtension}
-        />
-        <div className="flex-1 container px-4 py-6 md:py-10 flex items-center justify-center">
-          <Skeleton className="h-24 w-1/2" />
-        </div>
-      </div>
-    );
-  }
-  
-  // If no user is authenticated after auth check completes, the useEffect above will handle redirect
-  if (!user) {
-    return null;
-  }
+  }, [user, toastFromUI, refreshKey]);
   
   const handleChallengeComplete = () => {
     // Refresh stats when a challenge is completed
@@ -124,10 +82,11 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
     }
   };
   
+  // User should never be null here due to ProtectedRoute wrapper
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar 
-        isLoggedIn={true}
+        isLoggedIn={!!user}
         onLogout={logout}
         extension={navBarExtension}
       />
@@ -136,7 +95,7 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
         {/* Header with welcome message and play button */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold mb-1">Welcome, {user.name || user.email?.split('@')[0]}!</h1>
+            <h1 className="text-3xl font-bold mb-1">Welcome, {user?.name || user?.email?.split('@')[0]}!</h1>
             <p className="text-muted-foreground">Track your cognitive fitness journey</p>
           </div>
           <Button 
