@@ -4,16 +4,18 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import NavBar from '@/components/NavBar';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { Brain, GamepadIcon, Check } from 'lucide-react';
+import { Brain, GamepadIcon, Check, Award, Calendar, TrendingUp } from 'lucide-react';
+import { getUserStats, getRecommendedGames, UserStats } from '@/lib/dashboard';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<UserStats>({
     gamesPlayed: 0,
     streak: 0,
     overallScore: 0,
@@ -21,8 +23,10 @@ const Dashboard = () => {
     focusScore: 0,
     speedScore: 0,
     progress: 0,
-    lastPlayed: null as Date | null
+    lastPlayed: null
   });
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     if (!user) {
@@ -35,24 +39,30 @@ const Dashboard = () => {
       return;
     }
     
-    // Mock loading user stats - in a real app, this would fetch from an API
-    const loadMockStats = () => {
-      // Simulate API delay
-      setTimeout(() => {
-        setStats({
-          gamesPlayed: Math.floor(Math.random() * 10) + 5,
-          streak: Math.floor(Math.random() * 5) + 1,
-          overallScore: Math.floor(Math.random() * 500) + 200,
-          memoryScore: Math.floor(Math.random() * 100),
-          focusScore: Math.floor(Math.random() * 100),
-          speedScore: Math.floor(Math.random() * 100),
-          progress: Math.floor(Math.random() * 100),
-          lastPlayed: new Date(Date.now() - Math.floor(Math.random() * 86400000))
+    const loadDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Fetch user stats
+        const userStats = await getUserStats(user.id);
+        setStats(userStats);
+        
+        // Get game recommendations based on stats
+        const recommendedGames = await getRecommendedGames(userStats);
+        setRecommendations(recommendedGames);
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+        toast({
+          title: "Data loading failed",
+          description: "We couldn't retrieve your latest statistics",
+          variant: "destructive"
         });
-      }, 500);
+      } finally {
+        setIsLoading(false);
+      }
     };
     
-    loadMockStats();
+    loadDashboardData();
   }, [user, navigate, toast]);
   
   if (!user) {
@@ -62,6 +72,63 @@ const Dashboard = () => {
   const formatDate = (date: Date | null) => {
     if (!date) return 'Never';
     return date.toLocaleDateString();
+  };
+  
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'memory':
+        return <Brain className="h-5 w-5 text-brain-purple" />;
+      case 'focus':
+        return <Check className="h-5 w-5 text-brain-teal" />;
+      case 'speed':
+        return <GamepadIcon className="h-5 w-5 text-brain-coral" />;
+      default:
+        return <Brain className="h-5 w-5 text-brain-purple" />;
+    }
+  };
+  
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'memory':
+        return 'bg-brain-purple/10';
+      case 'focus':
+        return 'bg-brain-teal/10';
+      case 'speed':
+        return 'bg-brain-coral/10';
+      default:
+        return 'bg-brain-purple/10';
+    }
+  };
+  
+  // Generate personalized AI recommendation text
+  const getRecommendationText = () => {
+    let strongestArea = 'memory';
+    let strongestScore = stats.memoryScore;
+    
+    if (stats.focusScore > strongestScore) {
+      strongestArea = 'focus';
+      strongestScore = stats.focusScore;
+    }
+    
+    if (stats.speedScore > strongestScore) {
+      strongestArea = 'speed';
+      strongestScore = stats.speedScore;
+    }
+    
+    let weakestArea = 'memory';
+    let weakestScore = stats.memoryScore;
+    
+    if (stats.focusScore < weakestScore) {
+      weakestArea = 'focus';
+      weakestScore = stats.focusScore;
+    }
+    
+    if (stats.speedScore < weakestScore) {
+      weakestArea = 'speed';
+      weakestScore = stats.speedScore;
+    }
+    
+    return `Based on your recent games, we've noticed you excel at ${strongestArea} tasks but could benefit from more ${weakestArea}-building exercises. Try our recommended games to improve your overall cognitive fitness.`;
   };
   
   return (
@@ -75,7 +142,7 @@ const Dashboard = () => {
       <main className="flex-1 container px-4 py-6 md:py-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold mb-1">Welcome, {user.name}!</h1>
+            <h1 className="text-3xl font-bold mb-1">Welcome, {user.name || user.email?.split('@')[0]}!</h1>
             <p className="text-muted-foreground">Track your cognitive fitness journey</p>
           </div>
           <Button 
@@ -88,110 +155,166 @@ const Dashboard = () => {
         
         {/* Stats Overview */}
         <div className="grid gap-4 md:grid-cols-4 mb-8">
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center p-6">
-              <div className="text-3xl font-bold">{stats.gamesPlayed}</div>
-              <p className="text-sm text-muted-foreground">Games Played</p>
-            </CardContent>
-          </Card>
+          <StatCard 
+            title="Games Played" 
+            value={stats.gamesPlayed.toString()} 
+            icon={<GamepadIcon className="h-8 w-8 mb-2 text-brain-purple" />}
+            isLoading={isLoading}
+          />
           
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center p-6">
-              <div className="text-3xl font-bold">{stats.streak}</div>
-              <p className="text-sm text-muted-foreground">Day Streak</p>
-            </CardContent>
-          </Card>
+          <StatCard 
+            title="Day Streak" 
+            value={stats.streak.toString()} 
+            icon={<TrendingUp className="h-8 w-8 mb-2 text-brain-teal" />}
+            isLoading={isLoading}
+          />
           
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center p-6">
-              <div className="text-3xl font-bold">{stats.overallScore}</div>
-              <p className="text-sm text-muted-foreground">Total Points</p>
-            </CardContent>
-          </Card>
+          <StatCard 
+            title="Total Points" 
+            value={stats.overallScore.toString()} 
+            icon={<Award className="h-8 w-8 mb-2 text-brain-coral" />}
+            isLoading={isLoading}
+          />
           
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center p-6">
-              <div className="text-3xl font-bold">{formatDate(stats.lastPlayed)}</div>
-              <p className="text-sm text-muted-foreground">Last Played</p>
-            </CardContent>
-          </Card>
+          <StatCard 
+            title="Last Played" 
+            value={formatDate(stats.lastPlayed)} 
+            icon={<Calendar className="h-8 w-8 mb-2 text-brain-purple" />}
+            isLoading={isLoading}
+          />
         </div>
         
         {/* Cognitive Areas */}
         <h2 className="text-2xl font-bold mb-4">Cognitive Areas</h2>
         <div className="grid gap-4 md:grid-cols-3 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Memory</CardTitle>
-              <Brain className="h-4 w-4 text-brain-purple" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.memoryScore}%</div>
-              <Progress value={stats.memoryScore} className="h-2 mt-2" />
-              <p className="text-xs text-muted-foreground mt-2">Based on memory games performance</p>
-            </CardContent>
-          </Card>
+          <CognitiveAreaCard 
+            title="Memory" 
+            score={stats.memoryScore} 
+            icon={<Brain className="h-4 w-4 text-brain-purple" />}
+            description="Based on memory games performance"
+            isLoading={isLoading}
+          />
           
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Focus</CardTitle>
-              <Check className="h-4 w-4 text-brain-teal" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.focusScore}%</div>
-              <Progress value={stats.focusScore} className="h-2 mt-2" />
-              <p className="text-xs text-muted-foreground mt-2">Based on attention games performance</p>
-            </CardContent>
-          </Card>
+          <CognitiveAreaCard 
+            title="Focus" 
+            score={stats.focusScore} 
+            icon={<Check className="h-4 w-4 text-brain-teal" />}
+            description="Based on attention games performance"
+            isLoading={isLoading}
+          />
           
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Processing Speed</CardTitle>
-              <GamepadIcon className="h-4 w-4 text-brain-coral" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.speedScore}%</div>
-              <Progress value={stats.speedScore} className="h-2 mt-2" />
-              <p className="text-xs text-muted-foreground mt-2">Based on reaction games performance</p>
-            </CardContent>
-          </Card>
+          <CognitiveAreaCard 
+            title="Processing Speed" 
+            score={stats.speedScore} 
+            icon={<GamepadIcon className="h-4 w-4 text-brain-coral" />}
+            description="Based on reaction games performance"
+            isLoading={isLoading}
+          />
         </div>
         
         {/* Recommendations */}
         <h2 className="text-2xl font-bold mb-4">Your AI Recommendations</h2>
         <Card className="border-brain-teal/20 mb-8">
           <CardContent className="p-6">
-            <p className="italic text-muted-foreground mb-4">
-              "Based on your recent games, we've noticed you excel at memory tasks but could benefit from more focus-building exercises. 
-              Try the Number Sequence game to improve your processing speed and concentration."
-            </p>
-            
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="flex items-center gap-3 p-3 rounded-lg border">
-                <div className="bg-brain-purple/10 p-2 rounded-full">
-                  <Brain className="h-5 w-5 text-brain-purple" />
+            {isLoading ? (
+              <>
+                <Skeleton className="h-16 w-full mb-4" />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-20 w-full" />
                 </div>
-                <div>
-                  <div className="font-medium">Play Memory Match</div>
-                  <div className="text-xs text-muted-foreground">Recommended for today</div>
+              </>
+            ) : (
+              <>
+                <p className="italic text-muted-foreground mb-4">
+                  "{getRecommendationText()}"
+                </p>
+                
+                <div className="grid gap-4 md:grid-cols-2">
+                  {recommendations.map((game, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 rounded-lg border">
+                      <div className={`${getCategoryColor(game.category)} p-2 rounded-full`}>
+                        {getCategoryIcon(game.category)}
+                      </div>
+                      <div>
+                        <Button 
+                          variant="link" 
+                          className="h-auto p-0 font-medium text-left"
+                          onClick={() => navigate(`/game/${game.id}`)}
+                        >
+                          {game.name}
+                        </Button>
+                        <div className="text-xs text-muted-foreground">
+                          {index === 0 ? `Recommended to improve your ${game.category}` : 'New game for you'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-              
-              <div className="flex items-center gap-3 p-3 rounded-lg border">
-                <div className="bg-brain-teal/10 p-2 rounded-full">
-                  <GamepadIcon className="h-5 w-5 text-brain-teal" />
-                </div>
-                <div>
-                  <div className="font-medium">Try Word Recall</div>
-                  <div className="text-xs text-muted-foreground">New game for you</div>
-                </div>
-              </div>
-            </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </main>
     </div>
   );
 };
+
+// Card components for better organization
+const StatCard = ({ title, value, icon, isLoading }: { title: string; value: string; icon: React.ReactNode; isLoading: boolean }) => (
+  <Card>
+    <CardContent className="flex flex-col items-center justify-center p-6">
+      {isLoading ? (
+        <>
+          <Skeleton className="h-8 w-8 mb-2 rounded-full" />
+          <Skeleton className="h-8 w-16 mb-1" />
+          <Skeleton className="h-4 w-20" />
+        </>
+      ) : (
+        <>
+          {icon}
+          <div className="text-3xl font-bold">{value}</div>
+          <p className="text-sm text-muted-foreground">{title}</p>
+        </>
+      )}
+    </CardContent>
+  </Card>
+);
+
+const CognitiveAreaCard = ({ 
+  title, 
+  score, 
+  icon, 
+  description, 
+  isLoading 
+}: { 
+  title: string; 
+  score: number; 
+  icon: React.ReactNode; 
+  description: string;
+  isLoading: boolean;
+}) => (
+  <Card>
+    <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardTitle className="text-sm font-medium">{title}</CardTitle>
+      {icon}
+    </CardHeader>
+    <CardContent>
+      {isLoading ? (
+        <>
+          <Skeleton className="h-7 w-16 mb-2" />
+          <Skeleton className="h-2 w-full mb-2" />
+          <Skeleton className="h-4 w-40" />
+        </>
+      ) : (
+        <>
+          <div className="text-2xl font-bold">{score}%</div>
+          <Progress value={score} className="h-2 mt-2" />
+          <p className="text-xs text-muted-foreground mt-2">{description}</p>
+        </>
+      )}
+    </CardContent>
+  </Card>
+);
 
 export default Dashboard;
