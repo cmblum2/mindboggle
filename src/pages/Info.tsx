@@ -10,12 +10,19 @@ const Info = () => {
   const { user, login, logout } = useAuth();
   const navigate = useNavigate();
   
+  // Create a wrapper function for login that doesn't require parameters
+  const handleLogin = () => {
+    // The actual login will be handled by a modal or form
+    // This is just a placeholder that matches the expected function signature
+    login('', '');
+  };
+  
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar 
         isLoggedIn={!!user}
         onLogout={logout}
-        onLogin={login}
+        onLogin={handleLogin}
       />
       
       <main className="flex-1">
