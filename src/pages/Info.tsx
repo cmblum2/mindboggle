@@ -6,7 +6,11 @@ import { Brain, GamepadIcon, Star, LightbulbIcon } from 'lucide-react';
 import NavBar from '@/components/NavBar';
 import { useAuth } from '@/hooks/useAuth';
 
-const Info = () => {
+interface InfoProps {
+  navBarExtension?: React.ReactNode;
+}
+
+const Info = ({ navBarExtension }: InfoProps) => {
   const { user, login, logout } = useAuth();
   const navigate = useNavigate();
   
@@ -23,11 +27,12 @@ const Info = () => {
         isLoggedIn={!!user}
         onLogout={logout}
         onLogin={handleLogin}
+        extension={navBarExtension}
       />
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="py-12 md:py-20 bg-gradient-to-b from-white to-brain-purple/5">
+        <section className="py-12 md:py-20 bg-gradient-to-b from-background to-brain-purple/5 dark:from-background dark:to-brain-purple/10">
           <div className="container px-4 md:px-6">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
@@ -56,7 +61,7 @@ const Info = () => {
               <div className="space-y-16">
                 <div className="flex flex-col md:flex-row gap-8 items-center">
                   <div className="w-full md:w-1/3 flex justify-center">
-                    <div className="w-32 h-32 rounded-full bg-brain-purple/10 flex items-center justify-center">
+                    <div className="w-32 h-32 rounded-full bg-brain-purple/10 flex items-center justify-center dark:bg-brain-purple/20">
                       <Brain className="h-16 w-16 text-brain-purple" />
                     </div>
                   </div>
@@ -72,7 +77,7 @@ const Info = () => {
                 
                 <div className="flex flex-col md:flex-row-reverse gap-8 items-center">
                   <div className="w-full md:w-1/3 flex justify-center">
-                    <div className="w-32 h-32 rounded-full bg-brain-teal/10 flex items-center justify-center">
+                    <div className="w-32 h-32 rounded-full bg-brain-teal/10 flex items-center justify-center dark:bg-brain-teal/20">
                       <GamepadIcon className="h-16 w-16 text-brain-teal" />
                     </div>
                   </div>
@@ -89,7 +94,7 @@ const Info = () => {
                 
                 <div className="flex flex-col md:flex-row gap-8 items-center">
                   <div className="w-full md:w-1/3 flex justify-center">
-                    <div className="w-32 h-32 rounded-full bg-brain-coral/10 flex items-center justify-center">
+                    <div className="w-32 h-32 rounded-full bg-brain-coral/10 flex items-center justify-center dark:bg-brain-coral/20">
                       <LightbulbIcon className="h-16 w-16 text-brain-coral" />
                     </div>
                   </div>
@@ -109,7 +114,7 @@ const Info = () => {
         </section>
         
         {/* Benefits Section */}
-        <section className="py-16 md:py-24 bg-brain-light">
+        <section className="py-16 md:py-24 bg-muted">
           <div className="container px-4 md:px-6">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold">Benefits of Regular Brain Training</h2>

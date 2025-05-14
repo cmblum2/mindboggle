@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -5,7 +6,11 @@ import GameCard, { Game } from '@/components/GameCard';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
-const Games = () => {
+interface GamesProps {
+  navBarExtension?: React.ReactNode;
+}
+
+const Games = ({ navBarExtension }: GamesProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -104,6 +109,7 @@ const Games = () => {
         isLoggedIn={!!user}
         onLogout={logout}
         onLogin={() => navigate('/')}
+        extension={navBarExtension}
       />
       
       <main className="flex-1 container px-4 py-6 md:py-10">
@@ -116,7 +122,7 @@ const Games = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="bg-gray-200 h-64 rounded-2xl"></div>
+                <div className="bg-muted h-64 rounded-2xl"></div>
               </div>
             ))}
           </div>

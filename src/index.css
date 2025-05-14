@@ -66,6 +66,16 @@
     --border: 217 33% 25%;
     --input: 217 33% 25%;
     --ring: 262 100% 69%;
+    
+    /* Add Sidebar variables for dark mode */
+    --sidebar-background: 222 47% 10%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 262 100% 69%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 173 50% 50%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 25%;
+    --sidebar-ring: 262 100% 69%;
   }
 
   * {
@@ -88,7 +98,7 @@
   }
   
   .brain-card {
-    @apply rounded-2xl bg-white p-6 shadow-md transition-all duration-300 hover:shadow-lg;
+    @apply rounded-2xl bg-card p-6 shadow-md transition-all duration-300 hover:shadow-lg;
   }
 
   .brain-button {
@@ -98,8 +108,13 @@
 
 @layer components {
   .game-container {
-    @apply bg-white rounded-2xl p-6 shadow-xl border border-brain-teal/20;
+    @apply bg-card rounded-2xl p-6 shadow-xl border border-brain-teal/20;
     background-image: radial-gradient(circle at top right, rgba(123, 97, 255, 0.05), transparent 400px), 
                       radial-gradient(circle at bottom left, rgba(65, 191, 179, 0.05), transparent 400px);
+  }
+  
+  .dark .game-container {
+    background-image: radial-gradient(circle at top right, rgba(123, 97, 255, 0.1), transparent 400px), 
+                     radial-gradient(circle at bottom left, rgba(65, 191, 179, 0.1), transparent 400px);
   }
 }

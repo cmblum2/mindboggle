@@ -11,6 +11,7 @@ import Games from "./pages/Games";
 import GameDetail from "./pages/GameDetail";
 import NotFound from "./pages/NotFound";
 import Info from "./pages/Info";
+import NavBarExtension from "./components/NavBarExtension";
 
 const queryClient = new QueryClient();
 
@@ -40,15 +41,15 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Index navBarExtension={<NavBarExtension />} />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
-                <Dashboard />
+                <Dashboard navBarExtension={<NavBarExtension />} />
               </ProtectedRoute>
             } />
-            <Route path="/games" element={<Games />} />
-            <Route path="/game/:gameId" element={<GameDetail />} />
-            <Route path="/info" element={<Info />} />
+            <Route path="/games" element={<Games navBarExtension={<NavBarExtension />} />} />
+            <Route path="/game/:gameId" element={<GameDetail navBarExtension={<NavBarExtension />} />} />
+            <Route path="/info" element={<Info navBarExtension={<NavBarExtension />} />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

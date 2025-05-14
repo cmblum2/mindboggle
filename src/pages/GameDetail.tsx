@@ -9,7 +9,11 @@ import { Game } from '@/components/GameCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import AuthModal from '@/components/AuthModal';
 
-const GameDetail = () => {
+interface GameDetailProps {
+  navBarExtension?: React.ReactNode;
+}
+
+const GameDetail = ({ navBarExtension }: GameDetailProps) => {
   const { gameId } = useParams<{ gameId: string }>();
   const { user, login, signup, logout } = useAuth();
   const navigate = useNavigate();
@@ -145,6 +149,7 @@ const GameDetail = () => {
         isLoggedIn={!!user}
         onLogout={logout}
         onLogin={() => setShowAuthModal(true)}
+        extension={navBarExtension}
       />
       
       <main className="flex-1 container px-4 py-6 md:py-10">

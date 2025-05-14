@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +13,11 @@ import { getUserStats, getRecommendedGames, getDailyChallenges, UserStats } from
 import DailyChallenges from '@/components/DailyChallenges';
 import TrainingPlan from '@/components/TrainingPlan';
 
-const Dashboard = () => {
+interface DashboardProps {
+  navBarExtension?: React.ReactNode;
+}
+
+const Dashboard = ({ navBarExtension }: DashboardProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { toast: toastFromUI } = useToast();
@@ -82,6 +85,7 @@ const Dashboard = () => {
           isLoggedIn={false}
           onLogout={logout}
           onLogin={() => {}}
+          extension={navBarExtension}
         />
         <div className="flex-1 container px-4 py-6 md:py-10 flex items-center justify-center">
           <Skeleton className="h-24 w-1/2" />
@@ -115,6 +119,7 @@ const Dashboard = () => {
         isLoggedIn={true}
         onLogout={logout}
         onLogin={() => {}}
+        extension={navBarExtension}
       />
       
       <main className="flex-1 container px-4 py-6 md:py-10">
@@ -314,13 +319,13 @@ const getCategoryIcon = (category: string) => {
 const getCategoryColor = (category: string) => {
   switch (category) {
     case 'memory':
-      return 'bg-brain-purple/10';
+      return 'bg-brain-purple/10 dark:bg-brain-purple/20';
     case 'focus':
-      return 'bg-brain-teal/10';
+      return 'bg-brain-teal/10 dark:bg-brain-teal/20';
     case 'speed':
-      return 'bg-brain-coral/10';
+      return 'bg-brain-coral/10 dark:bg-brain-coral/20';
     default:
-      return 'bg-brain-purple/10';
+      return 'bg-brain-purple/10 dark:bg-brain-purple/20';
   }
 };
 
