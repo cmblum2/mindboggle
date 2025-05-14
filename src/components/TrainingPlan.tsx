@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import AnimateOnScroll from '@/components/AnimateOnScroll';
 import { fadeIn, fadeInRight, pulseOnHover, glowOnHover } from '@/lib/animate';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface TrainingPlanProps {
   memoryScore: number;
@@ -93,6 +94,15 @@ const TrainingPlan = ({
   
   const plan = getRecommendedPlan();
   
+  const handleStartTraining = (gameId: string, areaName: string) => {
+    if (!user) {
+      toast.error("Please log in to start training");
+      return;
+    }
+    
+    navigate(`/game/${gameId}`);
+  };
+  
   return (
     <AnimateOnScroll animation={fadeIn()} className="w-full">
       <Card className="border-brain-purple/20 transition-all duration-300">
@@ -137,7 +147,7 @@ const TrainingPlan = ({
                       variant="outline"
                       size="sm"
                       className={`justify-between w-full ${pulseOnHover()} ${glowOnHover(item.area === 'memory' ? 'brain-purple' : item.area === 'focus' ? 'brain-teal' : 'brain-coral')}`}
-                      onClick={() => navigate(`/game/${item.gameId}`)}
+                      onClick={() => handleStartTraining(item.gameId, item.name)}
                     >
                       <span>Start Training</span>
                       <ChevronRight className={`h-4 w-4 transition-transform duration-300 ${hoveredItem === item.area ? 'translate-x-1' : ''}`} />

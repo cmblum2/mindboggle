@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserStats } from '@/lib/dashboard';
 import { getCategoryIcon, getCategoryColor, getStrongestArea, getWeakestArea } from './CognitiveAreaUtils';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface AIRecommendationsProps {
   stats: UserStats;
@@ -15,6 +17,16 @@ interface AIRecommendationsProps {
 
 const AIRecommendations = ({ stats, recommendations, isLoading }: AIRecommendationsProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const handleGameClick = (gameId: string) => {
+    if (!user) {
+      toast.error("Please log in to play this game");
+      return;
+    }
+    
+    navigate(`/game/${gameId}`);
+  };
   
   return (
     <>
@@ -45,7 +57,7 @@ const AIRecommendations = ({ stats, recommendations, isLoading }: AIRecommendati
                       <Button 
                         variant="link" 
                         className="h-auto p-0 font-medium text-left"
-                        onClick={() => navigate(`/game/${game.id}`)}
+                        onClick={() => handleGameClick(game.id)}
                       >
                         {game.name}
                       </Button>
