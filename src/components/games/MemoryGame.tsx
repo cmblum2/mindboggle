@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -351,7 +350,8 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
         )}
       </div>
 
-      <style jsx>{`
+      <style>
+        {`
         .preserve-3d {
           transform-style: preserve-3d;
         }
@@ -361,7 +361,8 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
         .rotateY-180 {
           transform: rotateY(180deg);
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
