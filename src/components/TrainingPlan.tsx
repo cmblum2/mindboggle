@@ -43,6 +43,20 @@ const TrainingPlan = ({
       weakestScore = speedScore;
     }
     
+    // Determine the strongest area
+    let strongestArea = 'memory';
+    let strongestScore = memoryScore;
+    
+    if (focusScore > strongestScore) {
+      strongestArea = 'focus';
+      strongestScore = focusScore;
+    }
+    
+    if (speedScore > strongestScore) {
+      strongestArea = 'speed';
+      strongestScore = speedScore;
+    }
+    
     // Create a personalized plan based on scores
     const plan = [
       {
@@ -79,11 +93,19 @@ const TrainingPlan = ({
           : 'border-brain-coral/20'
       },
       {
-        area: 'balance',
-        name: 'Balanced Training',
-        recommendation: 'Daily Challenge combines all skill areas',
-        gameId: 'daily-challenge',
-        score: Math.round((memoryScore + focusScore + speedScore) / 3),
+        area: 'advanced',
+        name: 'Advanced Practice',
+        recommendation: 'Challenge yourself with exercises that build on your strengths',
+        gameId: strongestArea === 'memory'
+          ? 'word-recall'
+          : strongestArea === 'focus'
+          ? 'number-sequence'
+          : 'reaction-test',
+        score: strongestArea === 'memory'
+          ? memoryScore
+          : strongestArea === 'focus'
+          ? focusScore
+          : speedScore,
         color: 'bg-gray-100 text-gray-700',
         borderColor: 'border-gray-200'
       }
