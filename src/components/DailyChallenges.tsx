@@ -18,136 +18,127 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
   const [challenges, setChallenges] = useState<DailyChallenge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeChallenge, setActiveChallenge] = useState<string | null>(null);
-  const [lastRefreshDate, setLastRefreshDate] = useState<string>('');
-  const [previousCompletedCount, setPreviousCompletedCount] = useState<number>(0);
-  const isFirstLoad = useRef(true);
-  const refreshTimeoutRef = useRef<number | null>(null);
-  const challengesFetched = useRef(false);
+  const [todayDateKey, setTodayDateKey] = useState<string>(new Date().toLocaleDateString());
+  const previousCompletedCountRef = useRef<number>(0);
+  const challengesFetched = useRef<boolean>(false);
+  const notificationDebounceRef = useRef<number | null>(null);
   
-  // Function to check if challenges need to reset (it's a new day)
-  const shouldRefreshChallenges = () => {
-    const today = new Date().toLocaleDateString();
-    if (lastRefreshDate !== today) {
-      setLastRefreshDate(today);
-      return true;
-    }
-    return false;
-  };
-  
-  // Debounced function to prevent multiple rapid challenge complete notifications
-  const notifyChallengeComplete = () => {
-    // Clear any existing timeout
-    if (refreshTimeoutRef.current) {
-      clearTimeout(refreshTimeoutRef.current);
-    }
-    
-    // Set a new timeout
-    refreshTimeoutRef.current = window.setTimeout(() => {
-      onChallengeComplete();
-      refreshTimeoutRef.current = null;
-    }, 1000); // 1 second debounce
-  };
-  
+  // Load challenges only once on mount or when date changes
   useEffect(() => {
-    // Only load challenges once per component mount
-    if (challengesFetched.current) {
-      return;
-    }
+    // Check if today's date is different from what we have stored
+    const today = new Date().toLocaleDateString();
+    const isNewDay = today !== todayDateKey;
     
-    const loadChallenges = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Force refresh if it's a new day
-        const forceRefresh = shouldRefreshChallenges();
-        const dailyChallenges = await getDailyChallenges(userId, forceRefresh);
-        
-        // Store today's date after successful refresh
-        setLastRefreshDate(new Date().toLocaleDateString());
-        
-        // Count completed challenges
-        const completedCount = dailyChallenges.filter(c => c.completed).length;
-        
-        // Check if any new challenges were completed (but only after first load)
-        if (!isFirstLoad.current && completedCount > previousCompletedCount) {
-          notifyChallengeComplete();
+    // Only load challenges if:
+    // 1. We haven't fetched them yet OR
+    // 2. It's a new day
+    if (!challengesFetched.current || isNewDay) {
+      const loadChallenges = async () => {
+        try {
+          setIsLoading(true);
+          
+          // Force refresh if it's a new day
+          const dailyChallenges = await getDailyChallenges(userId, isNewDay);
+          
+          // Update date key if it's a new day
+          if (isNewDay) {
+            setTodayDateKey(today);
+          }
+          
+          // Count completed challenges
+          const completedCount = dailyChallenges.filter(c => c.completed).length;
+          
+          // Store the completed count for reference
+          previousCompletedCountRef.current = completedCount;
+          
+          // Update challenges
+          setChallenges(dailyChallenges);
+          
+          // Mark that we've fetched challenges
+          challengesFetched.current = true;
+        } catch (error) {
+          console.error('Error loading daily challenges:', error);
+          toast.error('Could not load your daily challenges');
+        } finally {
+          setIsLoading(false);
         }
-        
-        // Update states
-        setChallenges(dailyChallenges);
-        setPreviousCompletedCount(completedCount);
-        
-        // After first successful load, set firstLoad to false
-        isFirstLoad.current = false;
-        // Mark that we've fetched challenges
-        challengesFetched.current = true;
-      } catch (error) {
-        console.error('Error loading daily challenges:', error);
-        toast.error('Could not load your daily challenges');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    if (userId) {
-      loadChallenges();
-    }
-    
-    // Check for day change when component mounts or regains focus
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && shouldRefreshChallenges()) {
-        // Reset the fetched flag when we need to refresh on a new day
-        challengesFetched.current = false;
+      };
+      
+      if (userId) {
         loadChallenges();
+      }
+    }
+  }, [userId, todayDateKey]);
+  
+  // Check for day change and completed challenges periodically
+  useEffect(() => {
+    // Handler for document visibility changes (tab focus)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Check if it's a new day
+        const today = new Date().toLocaleDateString();
+        if (today !== todayDateKey) {
+          // Reset the fetched flag to trigger a reload on new day
+          challengesFetched.current = false;
+          setTodayDateKey(today);
+        }
       }
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    // Only update challenges state periodically (once every 5 minutes) to check for auto-completed challenges
-    // without causing rendering glitches
-    const checkCompletionInterval = setInterval(() => {
-      // Do not fetch if we're loading or if the document isn't visible
-      if (isLoading || document.visibilityState !== 'visible') {
-        return;
+    // Periodically check for challenge completion, but not too frequently (once per minute)
+    const completionCheckInterval = setInterval(() => {
+      // Only check if:
+      // 1. Document is visible
+      // 2. We're not loading
+      // 3. We have challenges loaded
+      if (document.visibilityState === 'visible' && !isLoading && challenges.length > 0) {
+        checkForCompletedChallenges();
       }
-
-      // Check for completion status updates without replacing the entire challenge list
-      const checkChallengeCompletion = async () => {
-        try {
-          const updatedChallenges = await getDailyChallenges(userId, false);
-          
-          // Count newly completed challenges
-          const newCompletedCount = updatedChallenges.filter(c => c.completed).length;
-          
-          // Only update if completion count changed
-          if (newCompletedCount > previousCompletedCount) {
-            setChallenges(updatedChallenges);
-            setPreviousCompletedCount(newCompletedCount);
-            
-            // Notify only if not first load
-            if (!isFirstLoad.current) {
-              notifyChallengeComplete();
-            }
-          }
-        } catch (error) {
-          console.error('Error checking challenge completion:', error);
-        }
-      };
-      
-      checkChallengeCompletion();
-    }, 300000); // 5 minutes
+    }, 60000); // Check once per minute
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      clearInterval(checkCompletionInterval);
+      clearInterval(completionCheckInterval);
       
-      // Clear any pending timeouts on unmount
-      if (refreshTimeoutRef.current) {
-        clearTimeout(refreshTimeoutRef.current);
+      // Clear any pending debounced notifications
+      if (notificationDebounceRef.current) {
+        clearTimeout(notificationDebounceRef.current);
       }
     };
-  }, [userId, onChallengeComplete, isLoading]);
+  }, [challenges, isLoading, todayDateKey, userId]);
+  
+  // Function to check for completed challenges
+  const checkForCompletedChallenges = async () => {
+    try {
+      // Get updated challenges without forcing refresh
+      const updatedChallenges = await getDailyChallenges(userId, false);
+      
+      // Count newly completed challenges
+      const newCompletedCount = updatedChallenges.filter(c => c.completed).length;
+      
+      // Only update and notify if completion status changed
+      if (newCompletedCount > previousCompletedCountRef.current) {
+        // Update state with new challenges
+        setChallenges(updatedChallenges);
+        // Update reference count
+        previousCompletedCountRef.current = newCompletedCount;
+        
+        // Debounce notification to prevent multiple rapid notifications
+        if (notificationDebounceRef.current) {
+          clearTimeout(notificationDebounceRef.current);
+        }
+        
+        notificationDebounceRef.current = window.setTimeout(() => {
+          onChallengeComplete();
+          notificationDebounceRef.current = null;
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error checking challenge completion:', error);
+    }
+  };
   
   const getChallengeIcon = (type: string) => {
     switch (type) {
@@ -164,6 +155,7 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
           <Zap className="h-4 w-4 text-brain-coral" />
         </div>;
       case 'balanced':
+      case 'mixed':
         return <div className="h-6 w-6 rounded-full bg-brain-blue/20 flex items-center justify-center">
           <Star className="h-4 w-4 text-brain-blue" />
         </div>;
@@ -208,7 +200,7 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
             <div className="space-y-3">
               {challenges.map((challenge, index) => (
                 <AnimateOnScroll
-                  key={`${challenge.id}-${index}`}
+                  key={`${challenge.id}`}
                   animation={fadeInLeft(index * 100)}
                   className="w-full"
                 >

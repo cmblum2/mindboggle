@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UserStats {
@@ -455,7 +454,8 @@ export const getDailyChallenges = async (userId: string, forceRefresh = false): 
     // If challenges exist for today and we're not forcing a refresh, update their completion status
     if (existingChallenges && existingChallenges.length > 0 && !forceRefresh) {
       // Get user stats to automatically update challenge completion
-      const userStats = await getUserStats(userId);
+      // But only fetch today's stats for completion checking
+      const userStats = await getTodayUserStats(userId);
       
       // Update challenge completion status based on user stats
       const updatedChallenges = await updateChallengeCompletionStatus(existingChallenges, userStats, userId);
@@ -481,11 +481,11 @@ export const getDailyChallenges = async (userId: string, forceRefresh = false): 
     // Get user stats to generate personalized challenges
     const userStats = await getUserStats(userId);
     
-    // Generate new challenges based on user's weakest areas
+    // Generate new challenges based on user's weakest areas - EXACTLY 3 challenges
     const challenges = generatePersonalizedChallenges(userStats);
     
-    // Insert new challenges into database
-    for (const challenge of challenges) {
+    // Insert new challenges into database - limit to 3
+    for (const challenge of challenges.slice(0, 3)) {
       const { error: insertError } = await supabase
         .from('daily_challenges')
         .insert({
@@ -512,8 +512,11 @@ export const getDailyChallenges = async (userId: string, forceRefresh = false): 
       throw fetchError;
     }
     
+    // Get today's stats for completion checking
+    const todayStats = await getTodayUserStats(userId);
+    
     // Immediately check if any challenges should be marked as completed
-    const updatedChallenges = await updateChallengeCompletionStatus(newChallenges || [], userStats, userId);
+    const updatedChallenges = await updateChallengeCompletionStatus(newChallenges || [], todayStats, userId);
     
     return updatedChallenges.map(challenge => ({
       id: challenge.id,
@@ -523,7 +526,7 @@ export const getDailyChallenges = async (userId: string, forceRefresh = false): 
     }));
   } catch (error) {
     console.error("Error in getDailyChallenges:", error);
-    // Return mock challenges as fallback
+    // Return mock challenges as fallback - exactly 3
     return [
       {
         id: '1',
@@ -548,7 +551,95 @@ export const getDailyChallenges = async (userId: string, forceRefresh = false): 
 };
 
 /**
+ * Get only today's user stats for challenge completion checking
+ */
+const getTodayUserStats = async (userId: string): Promise<UserStats> => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const { data: todayPerformance, error } = await supabase
+      .from('cognitive_performance')
+      .select('*')
+      .eq('user_id', userId)
+      .gte('date', today.toISOString())
+      .order('date', { ascending: false });
+      
+    if (error) {
+      console.error("Error fetching today's stats:", error);
+      throw error;
+    }
+    
+    if (!todayPerformance || todayPerformance.length === 0) {
+      // No games played today
+      return {
+        gamesPlayed: 0,
+        streak: 0,
+        overallScore: 0,
+        memoryScore: 0,
+        focusScore: 0,
+        speedScore: 0,
+        progress: 0,
+        lastPlayed: null
+      };
+    }
+    
+    // Calculate today's stats
+    const gamesPlayedToday = todayPerformance.length;
+    const streak = calculateStreak(todayPerformance);
+    
+    // Calculate today's average scores
+    let totalMemoryScore = 0;
+    let totalFocusScore = 0;
+    let totalSpeedScore = 0;
+    let totalOverallScore = 0;
+    
+    todayPerformance.forEach(record => {
+      if (record.memory_score != null && 
+          record.focus_score != null && 
+          record.speed_score != null &&
+          record.overall_score != null) {
+        totalMemoryScore += record.memory_score;
+        totalFocusScore += record.focus_score;
+        totalSpeedScore += record.speed_score;
+        totalOverallScore += record.overall_score;
+      }
+    });
+    
+    const memoryScore = gamesPlayedToday > 0 ? Math.round(totalMemoryScore / gamesPlayedToday) : 0;
+    const focusScore = gamesPlayedToday > 0 ? Math.round(totalFocusScore / gamesPlayedToday) : 0;
+    const speedScore = gamesPlayedToday > 0 ? Math.round(totalSpeedScore / gamesPlayedToday) : 0;
+    const overallScore = gamesPlayedToday > 0 ? Math.round(totalOverallScore / gamesPlayedToday) : 0;
+    
+    return {
+      gamesPlayed: gamesPlayedToday,
+      streak,
+      overallScore,
+      memoryScore,
+      focusScore,
+      speedScore,
+      progress: calculateProgress(todayPerformance),
+      lastPlayed: new Date(todayPerformance[0].date)
+    };
+  } catch (error) {
+    console.error("Error getting today's stats:", error);
+    // Return default stats
+    return {
+      gamesPlayed: 0,
+      streak: 0,
+      overallScore: 0,
+      memoryScore: 0,
+      focusScore: 0,
+      speedScore: 0,
+      progress: 0,
+      lastPlayed: null
+    };
+  }
+};
+
+/**
  * Automatically update challenge completion status based on user stats
+ * Only completes challenges based on TODAY's activity
  */
 const updateChallengeCompletionStatus = async (
   challenges: any[], 
@@ -570,6 +661,7 @@ const updateChallengeCompletionStatus = async (
     .order('date', { ascending: false });
   
   const gamesPlayedToday = todaysPerformance?.length || 0;
+  const hasPlayedToday = gamesPlayedToday > 0;
   
   // For each challenge, check if it should be automatically completed
   for (const challenge of updatedChallenges) {
@@ -579,32 +671,24 @@ const updateChallengeCompletionStatus = async (
     
     switch (challenge.challenge_type) {
       case 'memory':
-        // Complete memory challenge if they played a memory game with good score
-        shouldComplete = userStats.memoryScore >= 80 && userStats.lastPlayed 
-          ? new Date(userStats.lastPlayed).toDateString() === new Date().toDateString() 
-          : false;
+        // Complete memory challenge if they played a memory game with good score TODAY
+        shouldComplete = userStats.memoryScore >= 70 && hasPlayedToday;
         break;
         
       case 'focus':
-        // Complete focus challenge if they played a focus game today
-        shouldComplete = userStats.focusScore >= 75 && userStats.lastPlayed 
-          ? new Date(userStats.lastPlayed).toDateString() === new Date().toDateString() 
-          : false;
+        // Complete focus challenge if they played a focus game with good score TODAY
+        shouldComplete = userStats.focusScore >= 70 && hasPlayedToday;
         break;
         
       case 'speed':
-        // Complete speed challenge if they played a speed game today
-        shouldComplete = userStats.speedScore >= 70 && userStats.lastPlayed 
-          ? new Date(userStats.lastPlayed).toDateString() === new Date().toDateString() 
-          : false;
+        // Complete speed challenge if they played a speed game with good score TODAY
+        shouldComplete = userStats.speedScore >= 70 && hasPlayedToday;
         break;
         
       case 'mixed':
       case 'balanced':
-        // Complete mixed/balanced challenge if they played any game today
-        shouldComplete = userStats.lastPlayed 
-          ? new Date(userStats.lastPlayed).toDateString() === new Date().toDateString() 
-          : false;
+        // Complete mixed/balanced challenge if they played any game TODAY
+        shouldComplete = hasPlayedToday;
         break;
         
       case 'streak':
@@ -613,15 +697,13 @@ const updateChallengeCompletionStatus = async (
         break;
         
       case 'achievement':
-        // Complete achievement challenge if they played 3+ games today
+        // Complete achievement challenge if they played 3+ games TODAY
         shouldComplete = gamesPlayedToday >= 3;
         break;
         
       default:
-        // Default case - mark as completed if they played any game today
-        shouldComplete = userStats.lastPlayed 
-          ? new Date(userStats.lastPlayed).toDateString() === new Date().toDateString() 
-          : false;
+        // Default case - mark as completed if they played any game TODAY
+        shouldComplete = hasPlayedToday;
     }
     
     if (shouldComplete && !challenge.completed) {
@@ -641,10 +723,9 @@ const updateChallengeCompletionStatus = async (
 
 /**
  * Generate personalized challenges based on user stats
+ * Always returns EXACTLY 3 challenges
  */
 const generatePersonalizedChallenges = (stats: UserStats): DailyChallenge[] => {
-  const challenges: DailyChallenge[] = [];
-  
   // Determine weakest area for targeted challenge
   let weakestArea = 'memory';
   let weakestScore = stats.memoryScore;
@@ -659,37 +740,38 @@ const generatePersonalizedChallenges = (stats: UserStats): DailyChallenge[] => {
     weakestScore = stats.speedScore;
   }
   
-  // Add challenge for weakest area
-  challenges.push({
-    id: 'temp-1',
-    challengeType: weakestArea,
-    description: weakestArea === 'memory' 
-      ? 'Complete a memory matching game with at least 85% accuracy' 
-      : weakestArea === 'focus'
-      ? 'Finish a full 5-minute focus exercise without interruption'
-      : 'Improve your reaction time score by at least 5%',
-    completed: false
-  });
-  
-  // Add general challenge
-  challenges.push({
-    id: 'temp-2',
-    challengeType: 'mixed',
-    description: stats.streak > 0 
-      ? `Keep your ${stats.streak}-day streak going! Complete any brain exercise`
-      : 'Start a streak by completing any brain exercise today',
-    completed: false
-  });
-  
-  // Add stretch goal challenge
-  challenges.push({
-    id: 'temp-3',
-    challengeType: 'achievement',
-    description: stats.gamesPlayed < 10
-      ? 'Complete 3 different brain exercises today'
-      : 'Beat your personal best score in any game',
-    completed: false
-  });
-  
-  return challenges;
+  // Create exactly 3 challenges
+  return [
+    // Challenge 1: Based on weakest cognitive area
+    {
+      id: 'temp-1',
+      challengeType: weakestArea,
+      description: weakestArea === 'memory' 
+        ? 'Complete a memory matching game with at least 70% accuracy' 
+        : weakestArea === 'focus'
+        ? 'Finish a full 5-minute focus exercise without interruption'
+        : 'Complete a reaction time exercise with good performance',
+      completed: false
+    },
+    
+    // Challenge 2: Daily activity challenge
+    {
+      id: 'temp-2',
+      challengeType: 'mixed',
+      description: stats.streak > 0 
+        ? `Keep your ${stats.streak}-day streak going! Complete any brain exercise`
+        : 'Start a streak by completing any brain exercise today',
+      completed: false
+    },
+    
+    // Challenge 3: Achievement challenge
+    {
+      id: 'temp-3',
+      challengeType: 'achievement',
+      description: stats.gamesPlayed < 10
+        ? 'Complete 3 different brain exercises today'
+        : 'Beat your personal best score in any game',
+      completed: false
+    }
+  ];
 };

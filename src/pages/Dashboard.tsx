@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   const [refreshKey, setRefreshKey] = useState(0); // Used to force data refresh
   const refreshTimeoutRef = useRef<number | null>(null);
   const toastDisplayedRef = useRef(false);
+  const challengeCompletedRef = useRef(false);
   
   const [stats, setStats] = useState<UserStats>({
     gamesPlayed: 0,
@@ -39,9 +41,6 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [dailyChallengesKey, setDailyChallengesKey] = useState(0); // State to refresh daily challenges
-  const [recommendationsKey, setRecommendationsKey] = useState(0); // State for recommendations refresh
-  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Debounced refresh function to prevent multiple rapid refreshes
   const debouncedRefresh = useCallback(() => {
@@ -115,8 +114,21 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   }
   
   const handleChallengeComplete = () => {
-    // Avoid rapid triggers using the debounced function
-    debouncedRefresh();
+    // Only trigger refresh once per session to prevent multiple notifications
+    if (!challengeCompletedRef.current) {
+      challengeCompletedRef.current = true;
+      
+      // Show a toast notification
+      toast.success("Challenge completed! Keep up the good work!");
+      
+      // Refresh the dashboard data
+      debouncedRefresh();
+      
+      // Reset the flag after 10 seconds to allow future notifications
+      setTimeout(() => {
+        challengeCompletedRef.current = false;
+      }, 10000);
+    }
   };
   
   // Clean up the timeout when component unmounts
@@ -182,7 +194,6 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
             <h2 className="text-2xl font-bold mb-4">Daily Challenges</h2>
             {user && (
               <DailyChallenges 
-                key={`daily-challenges-${refreshKey}`} // Use key to force remount only when refresh is needed
                 userId={user.id}
                 onChallengeComplete={handleChallengeComplete}
               />
@@ -193,7 +204,7 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
               stats={stats}
               recommendations={recommendations}
               isLoading={isLoading}
-              refreshKey={recommendationsKey} // Pass the key to force re-rendering
+              refreshKey={refreshKey} 
             />
           </div>
         </div>
