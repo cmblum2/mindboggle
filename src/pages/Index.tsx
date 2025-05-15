@@ -1,11 +1,11 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Brain, GamepadIcon, Star } from 'lucide-react';
 import NavBar from '@/components/NavBar';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface IndexProps {
   navBarExtension?: React.ReactNode;
@@ -15,7 +15,47 @@ const Index = ({ navBarExtension }: IndexProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [dailyProgress, setDailyProgress] = useState({
+    completed: 0,
+    total: 3
+  });
   
+  // Fetch user's daily progress
+  useEffect(() => {
+    if (user) {
+      fetchDailyProgress();
+    }
+  }, [user]);
+  
+  const fetchDailyProgress = async () => {
+    if (!user) return;
+    
+    try {
+      // Get today's date with time set to midnight
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Fetch games completed today
+      const { data, error } = await supabase
+        .from('cognitive_performance')
+        .select('id')
+        .eq('user_id', user.id)
+        .gte('date', today.toISOString());
+      
+      if (error) throw error;
+      
+      // Update progress state
+      setDailyProgress({
+        completed: data ? data.length : 0,
+        total: 3
+      });
+      
+    } catch (err) {
+      console.error("Error fetching daily progress:", err);
+      // Keep default values on error
+    }
+  };
+
   const handleGetStarted = () => {
     if (user) {
       navigate('/dashboard');
@@ -103,11 +143,14 @@ const Index = ({ navBarExtension }: IndexProps) => {
                         <div className="col-span-2 bg-muted p-3 rounded-lg">
                           <div className="text-sm font-medium mb-1">Today's Progress</div>
                           <div className="w-full bg-muted-foreground/20 rounded-full h-2">
-                            <div className="h-2 rounded-full bg-gradient-to-r from-brain-purple to-brain-teal" style={{ width: '65%' }}></div>
+                            <div 
+                              className="h-2 rounded-full bg-gradient-to-r from-brain-purple to-brain-teal" 
+                              style={{ width: `${(dailyProgress.completed / dailyProgress.total) * 100}%` }}
+                            ></div>
                           </div>
                           <div className="mt-1 text-xs text-muted-foreground">
                             {user.name ? `${user.name}'s progress: ` : ''}
-                            2/3 brain games complete
+                            {dailyProgress.completed}/{dailyProgress.total} brain games complete
                           </div>
                         </div>
                       </div>
