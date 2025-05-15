@@ -434,7 +434,7 @@ export const getRecommendedGames = async (stats: UserStats) => {
 /**
  * Get or create daily challenges for the user
  */
-export const getDailyChallenges = async (userId: string): Promise<DailyChallenge[]> => {
+export const getDailyChallenges = async (userId: string, forceRefresh = false): Promise<DailyChallenge[]> => {
   try {
     // Check if user has challenges for today
     const today = new Date();
@@ -452,14 +452,24 @@ export const getDailyChallenges = async (userId: string): Promise<DailyChallenge
       throw error;
     }
     
-    // If challenges exist for today, return them
-    if (existingChallenges && existingChallenges.length > 0) {
+    // If challenges exist for today and we're not forcing a refresh, return them
+    if (existingChallenges && existingChallenges.length > 0 && !forceRefresh) {
       return existingChallenges.map(challenge => ({
         id: challenge.id,
         challengeType: challenge.challenge_type,
         description: challenge.description,
         completed: challenge.completed
       }));
+    }
+    
+    // If it's a new day or forceRefresh is true, generate new challenges
+    if (forceRefresh && existingChallenges && existingChallenges.length > 0) {
+      // Delete existing challenges for today before creating new ones
+      await supabase
+        .from('daily_challenges')
+        .delete()
+        .eq('user_id', userId)
+        .gte('date', today.toISOString());
     }
     
     // Get user stats to generate personalized challenges

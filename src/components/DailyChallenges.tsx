@@ -2,13 +2,14 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Circle, CalendarDays, BrainCircuit, Lightbulb, Zap, Trophy, Award, Star } from 'lucide-react';
+import { CheckCircle, Circle, CalendarDays, BrainCircuit, Lightbulb, Zap, Trophy, Award, Star, Check } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from "sonner";
 import { DailyChallenge, getDailyChallenges, updateChallengeStatus } from '@/lib/dashboard';
 import { useAuth } from '@/hooks/useAuth';
 import AnimateOnScroll from '@/components/AnimateOnScroll';
 import { fadeIn, fadeInLeft, pulseOnHover } from '@/lib/animate';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface DailyChallengesProps {
   userId: string;
@@ -19,13 +20,31 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
   const [challenges, setChallenges] = useState<DailyChallenge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeChallenge, setActiveChallenge] = useState<string | null>(null);
+  const [lastRefreshDate, setLastRefreshDate] = useState<string>('');
+  
+  // Function to check if challenges need to reset (it's a new day)
+  const shouldRefreshChallenges = () => {
+    const today = new Date().toLocaleDateString();
+    if (lastRefreshDate !== today) {
+      setLastRefreshDate(today);
+      return true;
+    }
+    return false;
+  };
   
   useEffect(() => {
     const loadChallenges = async () => {
       try {
         setIsLoading(true);
-        const dailyChallenges = await getDailyChallenges(userId);
+        
+        // Force refresh if it's a new day
+        const forceRefresh = shouldRefreshChallenges();
+        const dailyChallenges = await getDailyChallenges(userId, forceRefresh);
+        
         setChallenges(dailyChallenges);
+        
+        // Store today's date after successful refresh
+        setLastRefreshDate(new Date().toLocaleDateString());
       } catch (error) {
         console.error('Error loading daily challenges:', error);
         toast.error('Could not load your daily challenges');
@@ -37,6 +56,19 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
     if (userId) {
       loadChallenges();
     }
+    
+    // Check for day change when component mounts or regains focus
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && shouldRefreshChallenges()) {
+        loadChallenges();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [userId]);
   
   const handleToggleChallenge = async (challengeId: string, currentStatus: boolean) => {
@@ -132,7 +164,7 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
                 >
                   <div 
                     className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-300 ${
-                      challenge.completed ? 'bg-muted/50' : ''
+                      challenge.completed ? 'bg-muted/50 border-green-300' : ''
                     } ${activeChallenge === challenge.id ? 'shadow-md transform -translate-y-0.5' : ''}`}
                     onMouseEnter={() => setActiveChallenge(challenge.id)}
                     onMouseLeave={() => setActiveChallenge(null)}
@@ -141,22 +173,22 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
                       <div className="transition-transform duration-300 transform-gpu">
                         {getChallengeIcon(challenge.challengeType)}
                       </div>
-                      <div className={challenge.completed ? 'text-muted-foreground' : ''}>
+                      <div className={`${challenge.completed ? 'text-muted-foreground line-through' : ''}`}>
                         {challenge.description}
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`h-8 w-8 p-0 rounded-full ${pulseOnHover()}`}
-                      onClick={() => handleToggleChallenge(challenge.id, challenge.completed)}
-                    >
-                      {challenge.completed ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <Circle className={`h-5 w-5 ${activeChallenge === challenge.id ? 'text-brain-teal' : ''}`} />
+                    <div className="flex items-center">
+                      {challenge.completed && (
+                        <div className="animate-fade-in text-xs text-green-600 font-medium mr-2">
+                          Completed!
+                        </div>
                       )}
-                    </Button>
+                      <Checkbox
+                        checked={challenge.completed}
+                        onCheckedChange={() => handleToggleChallenge(challenge.id, challenge.completed)}
+                        className={`${pulseOnHover()} ${challenge.completed ? 'data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500' : ''}`}
+                      />
+                    </div>
                   </div>
                 </AnimateOnScroll>
               ))}

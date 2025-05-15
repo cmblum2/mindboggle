@@ -97,6 +97,9 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
     // Refresh stats and recommendations when a challenge is completed
     setRefreshKey(prevKey => prevKey + 1);
     setRecommendationsKey(prevKey => prevKey + 1);
+    
+    // Show a success message
+    toast.success("Great job! Your stats are being updated.");
   };
   
   return (
