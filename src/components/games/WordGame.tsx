@@ -161,6 +161,9 @@ const WordGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: WordGameP
     setSelectedAnswer(null);
     setShowFeedback(null);
     setShowHint(false);
+    
+    // Don't update bonusPoints here - this was causing infinite loop
+    // Instead, reset it to 0
     setBonusPoints(0);
     
     // Adjust time based on difficulty and level
@@ -169,7 +172,13 @@ const WordGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: WordGameP
     setTimeRemaining(Math.max(10, baseTime - Math.floor(level / 3) * 2));
   }, [getRandomPuzzle, difficulty, level]);
 
-  // Timer effect
+  // Initialize game
+  useEffect(() => {
+    startNewPuzzle();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
+
+  // Timer effect - FIXED INFINITE LOOP HERE
   useEffect(() => {
     if (!currentPuzzle || showFeedback || gameOver) return;
 
@@ -180,10 +189,6 @@ const WordGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: WordGameP
           handleAnswer(null); // Time's up
           return 0;
         }
-        // Calculate bonus points based on time
-        if (prev > 5) {
-          setBonusPoints(Math.floor(prev / 3));
-        }
         return prev - 1;
       });
     }, 1000);
@@ -191,10 +196,15 @@ const WordGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: WordGameP
     return () => clearInterval(timer);
   }, [currentPuzzle, showFeedback, gameOver]);
 
-  // Initialize game
+  // Update bonus points separately to avoid infinite loop
   useEffect(() => {
-    startNewPuzzle();
-  }, [startNewPuzzle]);
+    if (!currentPuzzle || showFeedback || gameOver) return;
+    
+    // Calculate bonus points based on time
+    if (timeRemaining > 5) {
+      setBonusPoints(Math.floor(timeRemaining / 3));
+    }
+  }, [timeRemaining, currentPuzzle, showFeedback, gameOver]);
 
   // Handle level up animation
   useEffect(() => {
