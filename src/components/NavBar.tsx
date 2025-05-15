@@ -2,7 +2,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Brain, GamepadIcon, Home, LogOut, Menu, User, InfoIcon } from 'lucide-react';
+import { 
+  BrainCircuit, 
+  LayoutDashboard, 
+  Home, 
+  LogOut, 
+  Menu, 
+  PanelTopOpen,
+  Lightbulb,
+  Gamepad2
+} from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import AuthModal from '@/components/AuthModal';
 
@@ -45,7 +54,7 @@ const NavBar = ({ isLoggedIn, onLogout, extension, overrideNavigation }: NavBarP
     <header className="sticky top-0 z-50 w-full bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b border-brain-teal/10">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigation('/')}>
-          <Brain className="h-7 w-7 text-brain-purple" />
+          <BrainCircuit className="h-7 w-7 text-brain-purple" />
           <span className="font-bold text-xl tracking-tight">MindBoggle</span>
         </div>
         
@@ -63,14 +72,14 @@ const NavBar = ({ isLoggedIn, onLogout, extension, overrideNavigation }: NavBarP
                 className="flex items-center justify-start gap-2" 
                 onClick={() => handleNavigation('/')}
               >
-                <Home className="h-5 w-5" /> Home
+                <Home className="h-5 w-5 text-brain-blue" /> Home
               </Button>
               <Button 
                 variant="ghost" 
                 className="flex items-center justify-start gap-2" 
                 onClick={() => handleNavigation('/info')}
               >
-                <InfoIcon className="h-5 w-5" /> Info
+                <Lightbulb className="h-5 w-5 text-brain-yellow" /> Info
               </Button>
               {isLoggedIn && (
                 <>
@@ -79,21 +88,21 @@ const NavBar = ({ isLoggedIn, onLogout, extension, overrideNavigation }: NavBarP
                     className="flex items-center justify-start gap-2" 
                     onClick={() => handleNavigation('/dashboard')}
                   >
-                    <User className="h-5 w-5" /> Dashboard
+                    <LayoutDashboard className="h-5 w-5 text-brain-teal" /> Dashboard
                   </Button>
                   <Button 
                     variant="ghost" 
                     className="flex items-center justify-start gap-2" 
                     onClick={() => handleNavigation('/games')}
                   >
-                    <GamepadIcon className="h-5 w-5" /> Games
+                    <Gamepad2 className="h-5 w-5 text-brain-coral" /> Games
                   </Button>
                   <Button 
                     variant="ghost" 
                     className="flex items-center justify-start gap-2" 
                     onClick={handleLogout}
                   >
-                    <LogOut className="h-5 w-5" /> Logout
+                    <LogOut className="h-5 w-5 text-brain-purple" /> Logout
                   </Button>
                 </>
               )}
@@ -115,41 +124,42 @@ const NavBar = ({ isLoggedIn, onLogout, extension, overrideNavigation }: NavBarP
         <nav className="hidden md:flex items-center gap-6">
           <Button 
             variant="ghost" 
-            className="hover:bg-brain-teal/10" 
+            className="hover:bg-brain-teal/10 flex items-center gap-1" 
             onClick={() => handleNavigation('/')}
           >
-            Home
+            <Home className="h-4 w-4 text-brain-blue mr-1" /> Home
           </Button>
           
           <Button 
             variant="ghost" 
-            className="hover:bg-brain-teal/10" 
+            className="hover:bg-brain-teal/10 flex items-center gap-1" 
             onClick={() => handleNavigation('/info')}
           >
-            Info
+            <Lightbulb className="h-4 w-4 text-brain-yellow mr-1" /> Info
           </Button>
           
           {isLoggedIn ? (
             <>
               <Button 
                 variant="ghost" 
-                className="hover:bg-brain-teal/10" 
+                className="hover:bg-brain-teal/10 flex items-center gap-1" 
                 onClick={() => handleNavigation('/dashboard')}
               >
-                Dashboard
+                <LayoutDashboard className="h-4 w-4 text-brain-teal mr-1" /> Dashboard
               </Button>
               <Button 
                 variant="ghost" 
-                className="hover:bg-brain-teal/10" 
+                className="hover:bg-brain-teal/10 flex items-center gap-1" 
                 onClick={() => handleNavigation('/games')}
               >
-                Games
+                <Gamepad2 className="h-4 w-4 text-brain-coral mr-1" /> Games
               </Button>
               <Button 
                 variant="outline" 
                 onClick={handleLogout}
+                className="flex items-center gap-1"
               >
-                Logout
+                <LogOut className="h-4 w-4 mr-1" /> Logout
               </Button>
             </>
           ) : (

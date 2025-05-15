@@ -1,7 +1,17 @@
 
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Brain, GamepadIcon, Clock, Star, BrainCircuit, BrainCog } from 'lucide-react';
+import { 
+  BrainCircuit, 
+  Hourglass, 
+  Sparkles,
+  Timer,
+  Lightbulb,
+  PuzzlePiece,
+  Star,
+  Zap,
+  Trophy
+} from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useState } from 'react';
 import AuthModal from '@/components/AuthModal';
@@ -34,13 +44,13 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
   const getGameIcon = () => {
     switch (game.icon) {
       case 'memory':
-        return <Brain className="h-5 w-5 text-brain-purple" />;
+        return <BrainCircuit className="h-5 w-5 text-brain-purple" />;
       case 'speed':
-        return <Clock className="h-5 w-5 text-brain-teal" />;
+        return <Zap className="h-5 w-5 text-brain-teal" />;
       case 'focus':
-        return <Star className="h-5 w-5 text-brain-coral" />;
+        return <Sparkles className="h-5 w-5 text-brain-coral" />;
       default:
-        return <GamepadIcon className="h-5 w-5 text-brain-purple" />;
+        return <PuzzlePiece className="h-5 w-5 text-brain-purple" />;
     }
   };
   
@@ -69,13 +79,15 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
   const getBrainTargetIcon = () => {
     switch (game.category.toLowerCase()) {
       case 'memory':
-        return <Brain className="h-4 w-4 mr-1" />;
+        return <BrainCircuit className="h-4 w-4 mr-1 text-brain-purple" />;
       case 'speed':
-        return <BrainCircuit className="h-4 w-4 mr-1" />;
+        return <Zap className="h-4 w-4 mr-1 text-brain-teal" />;
       case 'focus':
-        return <BrainCog className="h-4 w-4 mr-1" />;
+        return <Lightbulb className="h-4 w-4 mr-1 text-brain-coral" />;
+      case 'balanced':
+        return <Star className="h-4 w-4 mr-1 text-brain-yellow" />;
       default:
-        return <Brain className="h-4 w-4 mr-1" />;
+        return <BrainCircuit className="h-4 w-4 mr-1 text-brain-purple" />;
     }
   };
   
@@ -116,7 +128,7 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
       <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
         <span>{game.category}</span>
         <span className="flex items-center">
-          <Clock className="h-3 w-3 mr-1" /> {game.duration}
+          <Hourglass className="h-3 w-3 mr-1" /> {game.duration}
         </span>
       </div>
       

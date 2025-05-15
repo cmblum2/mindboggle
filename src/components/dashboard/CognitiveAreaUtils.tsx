@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Brain, Check, GamepadIcon } from 'lucide-react';
+import { BrainCircuit, Lightbulb, Gauge } from 'lucide-react';
 import { UserStats } from '@/lib/dashboard';
 
 export const getWeakestArea = (stats: UserStats): string => {
@@ -40,13 +40,13 @@ export const getStrongestArea = (stats: UserStats): string => {
 export const getCategoryIcon = (category: string) => {
   switch (category) {
     case 'memory':
-      return <Brain className="h-5 w-5 text-brain-purple" />;
+      return <BrainCircuit className="h-5 w-5 text-brain-purple" />;
     case 'focus':
-      return <Check className="h-5 w-5 text-brain-teal" />;
+      return <Lightbulb className="h-5 w-5 text-brain-teal" />;
     case 'speed':
-      return <GamepadIcon className="h-5 w-5 text-brain-coral" />;
+      return <Gauge className="h-5 w-5 text-brain-coral" />;
     default:
-      return <Brain className="h-5 w-5 text-brain-purple" />;
+      return <BrainCircuit className="h-5 w-5 text-brain-purple" />;
   }
 };
 

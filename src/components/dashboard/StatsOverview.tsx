@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { GamepadIcon, TrendingUp, Award, Calendar } from 'lucide-react';
+import { Trophy, FlameKindling, Target, Calendar } from 'lucide-react';
 import StatCard from './StatCard';
 import { UserStats } from '@/lib/dashboard';
 
@@ -20,28 +20,28 @@ const StatsOverview = ({ stats, isLoading }: StatsOverviewProps) => {
       <StatCard 
         title="Total Games" 
         value={stats.gamesPlayed.toString()} 
-        icon={<GamepadIcon className="h-8 w-8 mb-2 text-brain-purple" />}
+        icon={<Trophy className="h-8 w-8 mb-2 text-brain-purple" />}
         isLoading={isLoading}
       />
       
       <StatCard 
         title="Day Streak" 
         value={stats.streak.toString()} 
-        icon={<TrendingUp className="h-8 w-8 mb-2 text-brain-teal" />}
+        icon={<FlameKindling className="h-8 w-8 mb-2 text-brain-coral animate-pulse-soft" />}
         isLoading={isLoading}
       />
       
       <StatCard 
         title="Avg Score" 
         value={stats.overallScore.toString()} 
-        icon={<Award className="h-8 w-8 mb-2 text-brain-coral" />}
+        icon={<Target className="h-8 w-8 mb-2 text-brain-teal" />}
         isLoading={isLoading}
       />
       
       <StatCard 
         title="Last Played" 
         value={formatDate(stats.lastPlayed)} 
-        icon={<Calendar className="h-8 w-8 mb-2 text-brain-purple" />}
+        icon={<Calendar className="h-8 w-8 mb-2 text-brain-blue" />}
         isLoading={isLoading}
       />
     </div>
