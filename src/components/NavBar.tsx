@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ interface NavBarProps {
   isLoggedIn: boolean;
   onLogout: () => void;
   extension?: React.ReactNode;
-  // Add the overrideNavigation prop with optional parameter
+  // The overrideNavigation prop allows GameDetail to handle navigation with confirmation
   overrideNavigation?: (path: string) => void;
 }
 

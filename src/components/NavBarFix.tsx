@@ -9,18 +9,21 @@ export const NavBarWithLogin = ({
   isLoggedIn, 
   onLogout, 
   onLogin, 
-  extension 
+  extension,
+  overrideNavigation
 }: { 
   isLoggedIn: boolean; 
   onLogout: () => void; 
   onLogin?: () => void; 
-  extension?: React.ReactNode 
+  extension?: React.ReactNode;
+  overrideNavigation?: (path: string) => void;
 }) => {
   return (
     <NavBar 
       isLoggedIn={isLoggedIn} 
       onLogout={onLogout} 
       extension={extension}
+      overrideNavigation={overrideNavigation}
     />
   );
 };
