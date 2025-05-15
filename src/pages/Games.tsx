@@ -49,17 +49,7 @@ const gameData: GameType[] = [
     difficulty: 'Easy',
     duration: '5-10 min',
     progress: 0,
-  },
-  {
-    id: 'daily-challenge',
-    name: 'Daily Challenge',
-    description: 'A balanced mix of exercises updated daily to train multiple cognitive skills',
-    icon: 'focus',
-    category: 'Balanced',
-    difficulty: 'Medium',
-    duration: '10-15 min',
-    progress: 0,
-  },
+  }
 ];
 
 interface GamesProps {
