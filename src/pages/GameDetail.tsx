@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -255,6 +256,7 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
               onComplete={handleGameComplete}
               onBack={() => handleNavigation('/games')}
               requireLogin={!user}
+              onGameStateChange={setGameInProgress}
             />
           </div>
         ) : (

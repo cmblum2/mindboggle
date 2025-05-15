@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +26,7 @@ interface MiniGameProps {
   onComplete: (score: number) => void;
   onBack: () => void;
   requireLogin?: boolean;
+  onGameStateChange?: (isPlaying: boolean) => void;
 }
 
 interface GameState {
@@ -36,7 +36,7 @@ interface GameState {
   showFeedback: boolean;
 }
 
-const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGameProps) => {
+const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateChange }: MiniGameProps) => {
   const [state, setState] = useState<GameState>({
     score: 0,
     timeLeft: 60,
@@ -49,6 +49,13 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
   
   const { toast: uiToast } = useToast();
   const { user } = useAuth();
+  
+  // Notify parent component when game state changes
+  useEffect(() => {
+    if (onGameStateChange) {
+      onGameStateChange(state.isPlaying);
+    }
+  }, [state.isPlaying, onGameStateChange]);
   
   // Timer for games
   useEffect(() => {
