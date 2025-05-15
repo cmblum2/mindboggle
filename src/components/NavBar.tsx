@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,22 +9,34 @@ interface NavBarProps {
   isLoggedIn: boolean;
   onLogout: () => void;
   extension?: React.ReactNode;
+  // Add the overrideNavigation prop with optional parameter
+  overrideNavigation?: (path: string) => void;
 }
 
-const NavBar = ({ isLoggedIn, onLogout, extension }: NavBarProps) => {
+const NavBar = ({ isLoggedIn, onLogout, extension, overrideNavigation }: NavBarProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleNavigation = (path: string) => {
-    navigate(path);
+    if (overrideNavigation) {
+      // Use the override navigation if provided
+      overrideNavigation(path);
+    } else {
+      // Otherwise use the default navigation
+      navigate(path);
+    }
     setIsOpen(false);
   };
   
   const handleLogout = async () => {
     await onLogout();
     // After logout, navigate home
-    navigate('/');
+    if (overrideNavigation) {
+      overrideNavigation('/');
+    } else {
+      navigate('/');
+    }
     setIsOpen(false);
   };
   

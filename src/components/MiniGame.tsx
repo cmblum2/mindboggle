@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -210,8 +211,9 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
         );
       case 'daily-challenge':
       case 'balanced-training':
+        // Fix: Use CreativeSparkGame instead of BalancedTraining as a fallback
         return (
-          <BalancedTraining
+          <CreativeSparkGame
             onScoreChange={handleScoreChange}
             onGameEnd={handleGameEnd}
             difficulty={getDifficulty()}
