@@ -473,7 +473,7 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
                         !card.flipped && !card.matched && !showPeek ? "hover:shadow-lg hover:scale-[1.02]" : ""
                       )}
                     >
-                      {/* Back of card */}
+                      {/* Back of card (question mark side) */}
                       <div className={cn(
                         "absolute inset-0 flex items-center justify-center backface-hidden rounded-lg",
                         `bg-gradient-to-br ${getThemeClass(currentTheme)}`,
@@ -482,7 +482,7 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
                         <span className="text-xl drop-shadow-sm">?</span>
                       </div>
                       
-                      {/* Front of card */}
+                      {/* Front of card (emoji/symbol side) */}
                       <div className={cn(
                         "absolute inset-0 flex items-center justify-center backface-hidden bg-white rounded-lg transform rotateY-180 shadow-md",
                         card.matched && "bg-green-50"
@@ -557,8 +557,7 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
         )}
       </div>
 
-      <style>
-        {`
+      <style jsx>{`
         .preserve-3d {
           transform-style: preserve-3d;
         }
@@ -568,8 +567,7 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
         .rotateY-180 {
           transform: rotateY(180deg);
         }
-        `}
-      </style>
+      `}</style>
     </div>
   );
 };
