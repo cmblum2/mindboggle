@@ -40,19 +40,22 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
           // Force refresh if it's a new day
           const dailyChallenges = await getDailyChallenges(userId, isNewDay);
           
+          // Make sure we only have exactly 3 challenges
+          const limitedChallenges = dailyChallenges.slice(0, 3);
+          
           // Update date key if it's a new day
           if (isNewDay) {
             setTodayDateKey(today);
           }
           
           // Count completed challenges
-          const completedCount = dailyChallenges.filter(c => c.completed).length;
+          const completedCount = limitedChallenges.filter(c => c.completed).length;
           
           // Store the completed count for reference
           previousCompletedCountRef.current = completedCount;
           
           // Update challenges
-          setChallenges(dailyChallenges);
+          setChallenges(limitedChallenges);
           
           // Mark that we've fetched challenges
           challengesFetched.current = true;
@@ -93,7 +96,8 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
       // 1. Document is visible
       // 2. We're not loading
       // 3. We have challenges loaded
-      if (document.visibilityState === 'visible' && !isLoading && challenges.length > 0) {
+      // 4. User ID is valid
+      if (document.visibilityState === 'visible' && !isLoading && challenges.length > 0 && userId) {
         checkForCompletedChallenges();
       }
     }, 60000); // Check once per minute
@@ -112,16 +116,17 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
   // Function to check for completed challenges
   const checkForCompletedChallenges = async () => {
     try {
-      // Get updated challenges without forcing refresh
+      // Get updated challenges without forcing refresh - limit to 3
       const updatedChallenges = await getDailyChallenges(userId, false);
+      const limitedChallenges = updatedChallenges.slice(0, 3);
       
       // Count newly completed challenges
-      const newCompletedCount = updatedChallenges.filter(c => c.completed).length;
+      const newCompletedCount = limitedChallenges.filter(c => c.completed).length;
       
       // Only update and notify if completion status changed
       if (newCompletedCount > previousCompletedCountRef.current) {
-        // Update state with new challenges
-        setChallenges(updatedChallenges);
+        // Update state with new challenges - limit to 3
+        setChallenges(limitedChallenges);
         // Update reference count
         previousCompletedCountRef.current = newCompletedCount;
         
@@ -174,8 +179,9 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
     }
   };
   
-  const completedChallenges = challenges.filter(c => c.completed).length;
-  const totalChallenges = challenges.length;
+  // Make sure we always have exactly 3 challenges to display
+  const displayChallenges = challenges.slice(0, 3);
+  const completedChallenges = displayChallenges.filter(c => c.completed).length;
   
   return (
     <AnimateOnScroll animation={fadeIn(100)} className="w-full">
@@ -186,7 +192,7 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
             Daily Challenges
           </CardTitle>
           <div className="text-sm text-muted-foreground">
-            {completedChallenges}/{totalChallenges} completed
+            {completedChallenges}/{displayChallenges.length} completed
           </div>
         </CardHeader>
         <CardContent>
@@ -196,11 +202,11 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
               <Skeleton className="h-14 w-full mb-3" />
               <Skeleton className="h-14 w-full" />
             </>
-          ) : challenges.length > 0 ? (
+          ) : displayChallenges.length > 0 ? (
             <div className="space-y-3">
-              {challenges.map((challenge, index) => (
+              {displayChallenges.map((challenge, index) => (
                 <AnimateOnScroll
-                  key={`${challenge.id}`}
+                  key={`challenge-${challenge.id}-${index}`}
                   animation={fadeInLeft(index * 100)}
                   className="w-full"
                 >
@@ -231,6 +237,27 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
                         {challenge.completed && <Check className="h-3 w-3" />}
                       </div>
                     </div>
+                  </div>
+                </AnimateOnScroll>
+              ))}
+              
+              {/* If we somehow have less than 3 challenges, show placeholders */}
+              {displayChallenges.length < 3 && Array.from({length: 3 - displayChallenges.length}).map((_, index) => (
+                <AnimateOnScroll
+                  key={`placeholder-${index}`}
+                  animation={fadeInLeft((displayChallenges.length + index) * 100)}
+                  className="w-full"
+                >
+                  <div className="flex items-center justify-between p-3 rounded-lg border border-dashed">
+                    <div className="flex items-center gap-3">
+                      <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center">
+                        <Star className="h-4 w-4 text-gray-300" />
+                      </div>
+                      <div className="text-gray-300">
+                        Challenge will appear soon...
+                      </div>
+                    </div>
+                    <div className="h-5 w-5 rounded-full bg-gray-100"></div>
                   </div>
                 </AnimateOnScroll>
               ))}

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UserStats {
@@ -432,6 +433,7 @@ export const getRecommendedGames = async (stats: UserStats) => {
 
 /**
  * Get or create daily challenges for the user
+ * Always returns EXACTLY 3 challenges
  */
 export const getDailyChallenges = async (userId: string, forceRefresh = false): Promise<DailyChallenge[]> => {
   try {
@@ -439,11 +441,23 @@ export const getDailyChallenges = async (userId: string, forceRefresh = false): 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
+    // First, check if we need to clear any existing challenges
+    if (forceRefresh) {
+      // Delete existing challenges for today before creating new ones
+      await supabase
+        .from('daily_challenges')
+        .delete()
+        .eq('user_id', userId)
+        .gte('date', today.toISOString());
+    }
+    
+    // Fetch challenges for today, limiting to exactly 3
     const { data: existingChallenges, error } = await supabase
       .from('daily_challenges')
       .select('*')
       .eq('user_id', userId)
       .gte('date', today.toISOString())
+      .limit(3) // Ensure we only get 3 challenges maximum
       .order('date', { ascending: false });
       
     if (error) {
@@ -451,8 +465,8 @@ export const getDailyChallenges = async (userId: string, forceRefresh = false): 
       throw error;
     }
     
-    // If challenges exist for today and we're not forcing a refresh, update their completion status
-    if (existingChallenges && existingChallenges.length > 0 && !forceRefresh) {
+    // If we have exactly 3 challenges and we're not forcing a refresh, update their completion status
+    if (existingChallenges && existingChallenges.length === 3 && !forceRefresh) {
       // Get user stats to automatically update challenge completion
       // But only fetch today's stats for completion checking
       const userStats = await getTodayUserStats(userId);
@@ -468,9 +482,9 @@ export const getDailyChallenges = async (userId: string, forceRefresh = false): 
       }));
     }
     
-    // If it's a new day or forceRefresh is true, generate new challenges
-    if (forceRefresh && existingChallenges && existingChallenges.length > 0) {
-      // Delete existing challenges for today before creating new ones
+    // If we don't have exactly 3 challenges or forceRefresh is true
+    // First, delete any existing challenges to avoid accumulation
+    if (existingChallenges && existingChallenges.length > 0) {
       await supabase
         .from('daily_challenges')
         .delete()
@@ -481,11 +495,11 @@ export const getDailyChallenges = async (userId: string, forceRefresh = false): 
     // Get user stats to generate personalized challenges
     const userStats = await getUserStats(userId);
     
-    // Generate new challenges based on user's weakest areas - EXACTLY 3 challenges
+    // Generate new challenges - EXACTLY 3
     const challenges = generatePersonalizedChallenges(userStats);
     
-    // Insert new challenges into database - limit to 3
-    for (const challenge of challenges.slice(0, 3)) {
+    // Insert exactly 3 new challenges into database
+    for (const challenge of challenges) {
       const { error: insertError } = await supabase
         .from('daily_challenges')
         .insert({
@@ -500,12 +514,14 @@ export const getDailyChallenges = async (userId: string, forceRefresh = false): 
       }
     }
     
-    // Fetch the newly created challenges
+    // Fetch the newly created challenges, limiting to exactly 3
     const { data: newChallenges, error: fetchError } = await supabase
       .from('daily_challenges')
       .select('*')
       .eq('user_id', userId)
-      .gte('date', today.toISOString());
+      .gte('date', today.toISOString())
+      .limit(3) // Ensure we only get 3 challenges
+      .order('date', { ascending: false });
       
     if (fetchError) {
       console.error("Error fetching new daily challenges:", fetchError);
@@ -518,7 +534,8 @@ export const getDailyChallenges = async (userId: string, forceRefresh = false): 
     // Immediately check if any challenges should be marked as completed
     const updatedChallenges = await updateChallengeCompletionStatus(newChallenges || [], todayStats, userId);
     
-    return updatedChallenges.map(challenge => ({
+    // Ensure we return exactly 3 challenges
+    return updatedChallenges.slice(0, 3).map(challenge => ({
       id: challenge.id,
       challengeType: challenge.challenge_type,
       description: challenge.description,
