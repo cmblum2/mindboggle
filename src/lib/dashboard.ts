@@ -233,7 +233,7 @@ const calculateProgress = (performanceData: any[]): number => {
 export const getRecommendedGames = async (stats: UserStats) => {
   // Create personalized recommendations based on cognitive scores
   try {
-    // Determine weakest and strongest areas
+    // 1. Determine weakest and strongest areas
     let weakestArea = 'memory';
     let weakestScore = stats.memoryScore;
     
@@ -246,52 +246,186 @@ export const getRecommendedGames = async (stats: UserStats) => {
       weakestArea = 'speed';
       weakestScore = stats.speedScore;
     }
+
+    let strongestArea = 'memory';
+    let strongestScore = stats.memoryScore;
     
-    // Map the weakest area to specific game recommendations that match the valid game IDs in GameDetail
-    let recommendedGameId = 'memory-match';
-    let recommendedGameName = 'Memory Match';
-    
-    if (weakestArea === 'memory') {
-      recommendedGameId = 'memory-match';
-      recommendedGameName = 'Memory Match';
-    } else if (weakestArea === 'focus') {
-      recommendedGameId = 'number-sequence';
-      recommendedGameName = 'Number Sequence';
-    } else if (weakestArea === 'speed') {
-      recommendedGameId = 'reaction-test';
-      recommendedGameName = 'Reaction Test';
+    if (stats.focusScore > strongestScore) {
+      strongestArea = 'focus';
+      strongestScore = stats.focusScore;
     }
     
-    // Generate personalized recommendations with valid game IDs
-    return [
-      {
-        id: recommendedGameId,
-        name: recommendedGameName,
-        category: weakestArea,
-        icon: weakestArea
-      },
-      {
+    if (stats.speedScore > strongestScore) {
+      strongestArea = 'speed';
+      strongestScore = stats.speedScore;
+    }
+    
+    // 2. Map areas to specific game recommendations that match valid game IDs
+    const gameRecommendations = {
+      memory: [
+        {
+          id: 'memory-match',
+          name: 'Memory Match',
+          category: 'memory',
+          icon: 'memory',
+          description: `This exercise can help strengthen your ${weakestScore < 30 ? 'particularly challenged' : weakestScore < 60 ? 'developing' : 'already solid'} memory abilities.`
+        },
+        {
+          id: 'word-recall',
+          name: 'Word Recall',
+          category: 'memory',
+          icon: 'memory',
+          description: 'Practice recalling words to build vocabulary memory connections.'
+        }
+      ],
+      focus: [
+        {
+          id: 'number-sequence', 
+          name: 'Number Sequence',
+          category: 'focus',
+          icon: 'focus',
+          description: `This exercise targets your ${weakestScore < 30 ? 'struggling' : weakestScore < 60 ? 'growing' : 'strong'} focus abilities through progressive difficulty.`
+        },
+        {
+          id: 'pattern-recognition',
+          name: 'Pattern Recognition',
+          category: 'focus',
+          icon: 'focus',
+          description: 'Identify and remember visual patterns to strengthen attention.'
+        }
+      ],
+      speed: [
+        {
+          id: 'reaction-test',
+          name: 'Reaction Test',
+          category: 'speed',
+          icon: 'speed',
+          description: `This exercise can help improve your ${weakestScore < 30 ? 'developing' : weakestScore < 60 ? 'moderate' : 'impressive'} processing speed.`
+        },
+        {
+          id: 'mental-math',
+          name: 'Mental Math',
+          category: 'speed',
+          icon: 'speed',
+          description: 'Solve math problems quickly to enhance numerical processing.'
+        }
+      ]
+    };
+    
+    // 3. Generate personalized recommendations based on user stats
+    const recommendations = [];
+    
+    // First recommendation: Target the weakest area
+    const weakAreaGames = gameRecommendations[weakestArea as keyof typeof gameRecommendations];
+    recommendations.push({
+      ...weakAreaGames[0],
+      isIdeal: true,
+      reasonShort: `Needs improvement (${weakestScore}%)`,
+      reason: `Based on your history, your ${weakestArea} skills could use the most attention with a current score of ${weakestScore}%.`
+    });
+    
+    // Second recommendation: Based on user context (streak, games played, progress)
+    let contextGame;
+    if (stats.streak >= 3) {
+      // For users on a streak, recommend something to challenge their strongest area
+      const strongAreaSecondaryGame = gameRecommendations[strongestArea as keyof typeof gameRecommendations][1] || 
+                                    gameRecommendations[strongestArea as keyof typeof gameRecommendations][0];
+      contextGame = {
+        ...strongAreaSecondaryGame,
+        reasonShort: `Challenge your strength`,
+        reason: `You're on a ${stats.streak}-day streak! Let's challenge your strongest cognitive area (${strongestArea}) to maintain your momentum.`
+      };
+    } else if (stats.gamesPlayed < 5) {
+      // For new users, recommend a balanced game
+      contextGame = {
         id: 'daily-challenge',
         name: 'Daily Brain Challenge',
         category: 'mixed',
-        icon: 'brain'
+        icon: 'brain',
+        reasonShort: `Great for beginners`,
+        reason: `Since you're still exploring brain training, this balanced exercise will help establish your cognitive baseline across all areas.`
+      };
+    } else if (stats.progress < 20) {
+      // For users with little progress, recommend something from their middle-scoring area
+      const middleArea = 
+        weakestArea !== 'memory' && strongestArea !== 'memory' ? 'memory' :
+        weakestArea !== 'focus' && strongestArea !== 'focus' ? 'focus' : 'speed';
+      
+      const middleAreaGame = gameRecommendations[middleArea as keyof typeof gameRecommendations][0];
+      contextGame = {
+        ...middleAreaGame,
+        reasonShort: `Balance your skills`,
+        reason: `To improve your overall cognitive score, focusing on balancing all abilities will help. This ${middleArea} exercise targets your middle-performing area.`
+      };
+    } else {
+      // For users with good progress, recommend a mixed exercise
+      contextGame = {
+        id: 'daily-challenge',
+        name: 'Daily Brain Challenge',
+        category: 'mixed',
+        icon: 'brain',
+        reasonShort: `Maintain momentum`,
+        reason: `With ${stats.progress}% improvement so far, this mixed cognitive challenge will help maintain your excellent progress across all areas.`
+      };
+    }
+    recommendations.push(contextGame);
+    
+    // Third recommendation: Based on time since last play (if available)
+    if (stats.lastPlayed) {
+      const daysSinceLastPlayed = Math.floor((Date.now() - stats.lastPlayed.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysSinceLastPlayed > 3) {
+        // If it's been a while, suggest an engaging speed game to get back into it
+        recommendations.push({
+          ...gameRecommendations.speed[0],
+          reasonShort: `Quick re-engagement`,
+          reason: `Welcome back! It's been ${daysSinceLastPlayed} days since your last exercise. This quick speed challenge is a perfect way to jump back in.`
+        });
+      } else if (stats.gamesPlayed > 10) {
+        // For experienced users who play regularly, suggest trying something new
+        const leastPlayedArea = weakestArea; // Simplified - ideally would check actual play history
+        const alternateGame = gameRecommendations[leastPlayedArea as keyof typeof gameRecommendations][1] || 
+                             gameRecommendations[leastPlayedArea as keyof typeof gameRecommendations][0];
+        recommendations.push({
+          ...alternateGame,
+          reasonShort: `Try something new`,
+          reason: `As an experienced brain trainer with ${stats.gamesPlayed} completed exercises, this ${leastPlayedArea} game will add variety to your routine.`
+        });
       }
-    ];
+    }
+    
+    // If we don't have 3 recommendations yet, add a third one
+    if (recommendations.length < 2) {
+      recommendations.push({
+        id: 'daily-challenge',
+        name: 'Daily Brain Challenge',
+        category: 'mixed',
+        icon: 'brain',
+        reasonShort: `Complete cognitive workout`,
+        reason: `This balanced exercise provides a complete cognitive workout, engaging all areas of your brain simultaneously.`
+      });
+    }
+    
+    // Return 3 recommendations max
+    return recommendations.slice(0, 3);
   } catch (error) {
     console.error("Error generating recommendations:", error);
-    // Fallback to default recommendations with valid game IDs
+    // Fallback to basic recommendations with valid game IDs
     return [
       {
         id: 'memory-match',
         name: 'Memory Match',
         category: 'memory',
-        icon: 'memory'
+        icon: 'memory',
+        reasonShort: 'Memory training',
+        reason: 'Regular memory exercises help maintain cognitive health.'
       },
       {
         id: 'daily-challenge',
         name: 'Daily Brain Challenge',
         category: 'mixed',
-        icon: 'brain'
+        icon: 'brain',
+        reasonShort: 'Complete workout',
+        reason: 'This balanced exercise provides a complete cognitive workout.'
       }
     ];
   }
