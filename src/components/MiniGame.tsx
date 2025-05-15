@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -9,6 +8,7 @@ import MemoryGame from './games/MemoryGame';
 import SequenceGame from './games/SequenceGame';
 import WordGame from './games/WordGame';
 import BalancedTraining from './games/BalancedTraining';
+import CreativeSparkGame from './games/CreativeSparkGame';
 import { saveGameResults } from '@/lib/dashboard';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -187,6 +187,13 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
           />
         );
       case 'reaction-test':
+        return (
+          <CreativeSparkGame
+            onScoreChange={handleScoreChange}
+            onGameEnd={handleGameEnd}
+            difficulty={getDifficulty()}
+          />
+        );
       default:
         return (
           <div className="text-center">
