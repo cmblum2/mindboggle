@@ -38,6 +38,7 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [recommendationsKey, setRecommendationsKey] = useState(0); // New state to specifically trigger recommendations refresh
   
   // Check if we should refresh stats (coming from game completion)
   useEffect(() => {
@@ -51,8 +52,12 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
       if (location.state?.refreshStats) {
         window.history.replaceState({}, document.title);
       }
-      // Trigger refresh
+      // Trigger refresh of both stats and recommendations
       setRefreshKey(prevKey => prevKey + 1);
+      setRecommendationsKey(prevKey => prevKey + 1); // Force recommendations to refresh as well
+      
+      // Show toast to indicate recommendations have been updated
+      toast.info("Your AI recommendations have been updated based on your latest activity!");
     }
   }, [location.state]);
   
@@ -89,8 +94,9 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   }
   
   const handleChallengeComplete = () => {
-    // Refresh stats when a challenge is completed
+    // Refresh stats and recommendations when a challenge is completed
     setRefreshKey(prevKey => prevKey + 1);
+    setRecommendationsKey(prevKey => prevKey + 1);
   };
   
   return (
@@ -157,6 +163,7 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
               stats={stats}
               recommendations={recommendations}
               isLoading={isLoading}
+              refreshKey={recommendationsKey} // Pass the key to force re-rendering
             />
           </div>
         </div>

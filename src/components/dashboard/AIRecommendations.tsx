@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,11 +14,19 @@ interface AIRecommendationsProps {
   stats: UserStats;
   recommendations: any[];
   isLoading: boolean;
+  refreshKey?: number; // Add refreshKey prop to force re-render
 }
 
-const AIRecommendations = ({ stats, recommendations, isLoading }: AIRecommendationsProps) => {
+const AIRecommendations = ({ stats, recommendations, isLoading, refreshKey }: AIRecommendationsProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  
+  // Effect to log when recommendations update
+  useEffect(() => {
+    if (!isLoading && recommendations.length > 0) {
+      console.log("AI recommendations refreshed with new data", { stats, recommendations, refreshKey });
+    }
+  }, [stats, recommendations, isLoading, refreshKey]);
   
   const handleGameClick = (gameId: string) => {
     if (!user) {
@@ -81,7 +89,7 @@ const AIRecommendations = ({ stats, recommendations, isLoading }: AIRecommendati
               <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
                 {recommendations.map((game, index) => (
                   <div 
-                    key={index} 
+                    key={`${game.id}-${refreshKey || 0}-${index}`} // Add refreshKey to ensure DOM updates
                     className={`flex items-center gap-3 p-3 rounded-lg border transition-all duration-300 hover:shadow-md 
                       ${game.isIdeal ? 'border-brain-purple/40 bg-brain-purple/5' : 'border-gray-200'}`}
                   >

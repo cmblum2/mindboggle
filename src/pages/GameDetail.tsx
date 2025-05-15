@@ -166,6 +166,13 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
     // Store the refresh flag in sessionStorage so dashboard can detect it
     sessionStorage.setItem('refreshStats', 'true');
     
+    // Show a success toast that mentions AI recommendations will be updated
+    toast({
+      title: "Game complete!",
+      description: "Your stats have been recorded and your AI recommendations will be updated on the dashboard.",
+      variant: "default"
+    });
+    
     // We don't navigate away automatically - user will stay on the feedback page
     // The FeedbackPanel in MiniGame will handle navigation when user clicks "Continue"
   };
