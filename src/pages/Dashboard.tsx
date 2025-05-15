@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,6 +24,7 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   const location = useLocation();
   const { toast: toastFromUI } = useToast();
   const [refreshKey, setRefreshKey] = useState(0); // Used to force data refresh
+  const refreshTimeoutRef = useRef<number | null>(null);
   
   const [stats, setStats] = useState<UserStats>({
     gamesPlayed: 0,
@@ -38,8 +39,36 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [dailyChallengesKey, setDailyChallengesKey] = useState(0); // New state to refresh daily challenges
-  const [recommendationsKey, setRecommendationsKey] = useState(0); // State to specifically trigger recommendations refresh
+  const [dailyChallengesKey, setDailyChallengesKey] = useState(0); // State to refresh daily challenges
+  const [recommendationsKey, setRecommendationsKey] = useState(0); // State for recommendations refresh
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Debounced refresh function to prevent multiple rapid refreshes
+  const debouncedRefresh = useCallback(() => {
+    // If already refreshing, don't trigger again
+    if (isRefreshing) return;
+    
+    // If there's a pending refresh, clear it
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current);
+    }
+    
+    // Mark as refreshing
+    setIsRefreshing(true);
+    
+    // Set a new timeout
+    refreshTimeoutRef.current = window.setTimeout(() => {
+      setRefreshKey(prevKey => prevKey + 1);
+      setRecommendationsKey(prevKey => prevKey + 1);
+      setDailyChallengesKey(prevKey => prevKey + 1);
+      
+      // Show toast only once
+      toast.info("Your AI recommendations have been updated based on your latest activity!");
+      
+      setIsRefreshing(false);
+      refreshTimeoutRef.current = null;
+    }, 1000); // 1 second debounce
+  }, [isRefreshing]);
   
   // Check if we should refresh stats (coming from game completion)
   useEffect(() => {
@@ -53,15 +82,11 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
       if (location.state?.refreshStats) {
         window.history.replaceState({}, document.title);
       }
-      // Trigger refresh of stats, recommendations, and daily challenges
-      setRefreshKey(prevKey => prevKey + 1);
-      setRecommendationsKey(prevKey => prevKey + 1);
-      setDailyChallengesKey(prevKey => prevKey + 1); // Refresh daily challenges too
       
-      // Show toast to indicate recommendations have been updated
-      toast.info("Your AI recommendations have been updated based on your latest activity!");
+      // Trigger refresh using debounced function
+      debouncedRefresh();
     }
-  }, [location.state]);
+  }, [location.state, debouncedRefresh]);
   
   useEffect(() => {
     if (!user) {
@@ -96,13 +121,18 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   }
   
   const handleChallengeComplete = () => {
-    // Refresh stats and recommendations when a challenge is completed
-    setRefreshKey(prevKey => prevKey + 1);
-    setRecommendationsKey(prevKey => prevKey + 1);
-    
-    // Show a success message
-    toast.success("Challenge completed! Your stats are being updated.");
+    // Avoid rapid triggers using the debounced function
+    debouncedRefresh();
   };
+  
+  // Clean up the timeout when component unmounts
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, []);
   
   return (
     <div className="min-h-screen flex flex-col">
