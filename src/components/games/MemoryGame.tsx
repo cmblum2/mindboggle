@@ -450,63 +450,72 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
             </div>
             
             <div className={`grid ${getGridColumns()} gap-3`}>
-              <AnimatePresence>
-                {cards.map(card => (
-                  <motion.div
-                    key={card.id}
-                    initial={{ rotateY: 0 }}
-                    animate={{ 
-                      rotateY: (card.flipped || card.matched || showPeek) ? 180 : 0,
-                      scale: card.matched ? 0.95 : 1
-                    }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    onClick={() => handleCardClick(card.id)}
+              {cards.map(card => (
+                <div
+                  key={card.id}
+                  onClick={() => handleCardClick(card.id)}
+                  className={cn(
+                    "cursor-pointer flip-card",
+                    card.matched && "opacity-70"
+                  )}
+                  style={{
+                    perspective: "1000px"
+                  }}
+                >
+                  <div
                     className={cn(
-                      "cursor-pointer",
-                      card.matched && "opacity-70"
+                      "flip-card-inner relative w-full h-full transition-transform duration-500",
+                      (card.flipped || card.matched || showPeek) ? "flip-card-flipped" : ""
                     )}
+                    style={{
+                      transformStyle: "preserve-3d"
+                    }}
                   >
-                    <Card 
+                    {/* Back of card (question mark) */}
+                    <div 
                       className={cn(
-                        "aspect-square relative h-full",
-                        card.matched ? "opacity-70" : "",
-                        !card.flipped && !card.matched && !showPeek ? "hover:shadow-lg hover:scale-[1.02]" : "",
-                        "perspective-500"
-                      )}
-                    >
-                      {/* Back of card (question mark side) */}
-                      <div className={cn(
-                        "absolute inset-0 flex items-center justify-center backface-hidden rounded-lg",
+                        "flip-card-back absolute w-full h-full backface-hidden rounded-lg shadow-md",
                         `bg-gradient-to-br ${getThemeClass(currentTheme)}`,
-                        "text-white shadow-md",
-                        "card-face card-back"
-                      )}>
-                        <span className="text-xl drop-shadow-sm">?</span>
-                      </div>
-                      
-                      {/* Front of card (emoji/symbol side) */}
-                      <div className={cn(
-                        "absolute inset-0 flex items-center justify-center backface-hidden bg-white rounded-lg shadow-md",
-                        "card-face card-front",
-                        card.matched && "bg-green-50"
-                      )}>
-                        <span className="text-4xl">{card.symbol}</span>
-                        {card.matched && (
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="absolute inset-0 flex items-center justify-center"
-                          >
-                            <Sparkles className="text-yellow-500 w-6 h-6 absolute" />
-                          </motion.div>
-                        )}
-                      </div>
-                    </Card>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+                        "flex items-center justify-center text-white"
+                      )}
+                      style={{
+                        backfaceVisibility: "hidden",
+                        transform: "rotateY(0deg)",
+                        zIndex: 2
+                      }}
+                    >
+                      <span className="text-xl drop-shadow-sm">?</span>
+                    </div>
+                    
+                    {/* Front of card (emoji) */}
+                    <div 
+                      className={cn(
+                        "flip-card-front absolute w-full h-full backface-hidden rounded-lg shadow-md bg-white",
+                        card.matched && "bg-green-50",
+                        "flex items-center justify-center"
+                      )}
+                      style={{
+                        backfaceVisibility: "hidden",
+                        transform: "rotateY(180deg)"
+                      }}
+                    >
+                      <span className="text-4xl">{card.symbol}</span>
+                      {card.matched && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="absolute inset-0 flex items-center justify-center"
+                        >
+                          <Sparkles className="text-yellow-500 w-6 h-6 absolute" />
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
             
+            {/* Game completion modals */}
             {isGameOver && matches === pairCount && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -560,27 +569,53 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
         )}
       </div>
 
-      {/* Fix the style tag to use regular style element */}
+      {/* CSS styles for card flipping */}
       <style>
         {`
-        .perspective-500 {
-          perspective: 500px;
-          transform-style: preserve-3d;
-        }
-        .backface-hidden {
-          backface-visibility: hidden;
-        }
-        .card-face {
-          transition: transform 0.6s;
-          transform-style: preserve-3d;
-        }
-        .card-back {
-          z-index: 2;
-          transform: rotateY(0deg);
-        }
-        .card-front {
-          transform: rotateY(180deg);
-        }
+          .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 0;
+            padding-bottom: 100%;
+            position: relative;
+          }
+          
+          .flip-card-inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+          }
+          
+          .flip-card-flipped {
+            transform: rotateY(180deg);
+          }
+          
+          .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+          }
+          
+          .flip-card-back {
+            z-index: 2;
+          }
+          
+          .flip-card-front {
+            transform: rotateY(180deg);
+          }
+          
+          .backface-hidden {
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+          }
         `}
       </style>
     </div>
