@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Circle, CalendarDays } from 'lucide-react';
+import { CheckCircle, Circle, CalendarDays, BrainCircuit, Lightbulb, Zap, Trophy, Award, Star } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from "sonner";
 import { DailyChallenge, getDailyChallenges, updateChallengeStatus } from '@/lib/dashboard';
@@ -71,19 +71,31 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
     switch (type) {
       case 'memory':
         return <div className="h-6 w-6 rounded-full bg-brain-purple/20 flex items-center justify-center">
-          <span className="text-brain-purple text-xs">M</span>
+          <BrainCircuit className="h-4 w-4 text-brain-purple" />
         </div>;
       case 'focus':
         return <div className="h-6 w-6 rounded-full bg-brain-teal/20 flex items-center justify-center">
-          <span className="text-brain-teal text-xs">F</span>
+          <Lightbulb className="h-4 w-4 text-brain-teal" />
         </div>;
       case 'speed':
         return <div className="h-6 w-6 rounded-full bg-brain-coral/20 flex items-center justify-center">
-          <span className="text-brain-coral text-xs">S</span>
+          <Zap className="h-4 w-4 text-brain-coral" />
+        </div>;
+      case 'balanced':
+        return <div className="h-6 w-6 rounded-full bg-brain-blue/20 flex items-center justify-center">
+          <Star className="h-4 w-4 text-brain-blue" />
+        </div>;
+      case 'achievement':
+        return <div className="h-6 w-6 rounded-full bg-amber-200 flex items-center justify-center">
+          <Trophy className="h-4 w-4 text-amber-600" />
+        </div>;
+      case 'streak':
+        return <div className="h-6 w-6 rounded-full bg-emerald-200 flex items-center justify-center">
+          <Award className="h-4 w-4 text-emerald-600" />
         </div>;
       default:
         return <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center">
-          <span className="text-gray-600 text-xs">•</span>
+          <Star className="h-4 w-4 text-gray-600" />
         </div>;
     }
   };

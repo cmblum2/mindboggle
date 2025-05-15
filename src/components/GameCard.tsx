@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -7,7 +6,6 @@ import {
   Sparkles,
   Timer,
   Lightbulb,
-  PuzzlePiece,
   Star,
   Zap,
   Trophy
@@ -50,7 +48,7 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
       case 'focus':
         return <Sparkles className="h-5 w-5 text-brain-coral" />;
       default:
-        return <PuzzlePiece className="h-5 w-5 text-brain-purple" />;
+        return <Star className="h-5 w-5 text-brain-purple" />;
     }
   };
   
