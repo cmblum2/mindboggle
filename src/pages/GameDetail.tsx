@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -8,6 +7,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { Game } from '@/components/GameCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import AuthModal from '@/components/AuthModal';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface GameDetailProps {
   navBarExtension?: React.ReactNode;
@@ -22,6 +31,14 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
   const [loading, setLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [statsUpdated, setStatsUpdated] = useState(false);
+  const [exitConfirmationOpen, setExitConfirmationOpen] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  
+  // Track if game is in progress - this will be set by the MiniGame component
+  const setGameInProgress = (inProgress: boolean) => {
+    setIsPlaying(inProgress);
+  };
   
   useEffect(() => {
     if (!gameId) {
@@ -143,7 +160,30 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
     fetchGame();
   }, [gameId, user, navigate, toast]);
   
+  // Intercept navigation events
+  useEffect(() => {
+    // Function to handle beforeunload event
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isPlaying) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Clean up function
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isPlaying]);
+  
   const handleGameComplete = async (score: number) => {
+    // Ensure we mark the game as no longer in progress
+    setIsPlaying(false);
+    
     // In a real app, this would save the score to backend
     console.log(`Game completed with score: ${score}`);
     
@@ -177,6 +217,16 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
     // The FeedbackPanel in MiniGame will handle navigation when user clicks "Continue"
   };
   
+  // Handle navigation with confirmation if needed
+  const handleNavigation = (path: string) => {
+    if (isPlaying) {
+      setPendingNavigation(path);
+      setExitConfirmationOpen(true);
+    } else {
+      navigate(path);
+    }
+  };
+  
   if (!gameId) {
     return null; // Will redirect in useEffect
   }
@@ -187,6 +237,8 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
         isLoggedIn={!!user}
         onLogout={logout}
         extension={navBarExtension}
+        // Override navigation to check game state
+        overrideNavigation={(path) => handleNavigation(path)}
       />
       
       <main className="flex-1 container px-4 py-6 md:py-10">
@@ -201,7 +253,7 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
             <MiniGame 
               game={game}
               onComplete={handleGameComplete}
-              onBack={() => navigate('/games')}
+              onBack={() => handleNavigation('/games')}
               requireLogin={!user}
             />
           </div>
@@ -219,6 +271,37 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
+      
+      {/* Navigation Confirmation Dialog */}
+      <AlertDialog 
+        open={exitConfirmationOpen}
+        onOpenChange={setExitConfirmationOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to leave?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your progress in this game will be lost if you leave now.
+              {user ? " Your current score will be saved to your profile." : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingNavigation(null)}>
+              No, continue playing
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingNavigation) {
+                  navigate(pendingNavigation);
+                }
+                setPendingNavigation(null);
+              }}
+            >
+              Yes, leave game
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

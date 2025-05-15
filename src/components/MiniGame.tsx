@@ -7,10 +7,19 @@ import FeedbackPanel from './FeedbackPanel';
 import MemoryGame from './games/MemoryGame';
 import SequenceGame from './games/SequenceGame';
 import WordGame from './games/WordGame';
-import BalancedTraining from './games/BalancedTraining';
 import CreativeSparkGame from './games/CreativeSparkGame';
 import { saveGameResults } from '@/lib/dashboard';
 import { useAuth } from '@/hooks/useAuth';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface MiniGameProps {
   game: Game;
@@ -33,6 +42,9 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
     isPlaying: false,
     showFeedback: false,
   });
+  
+  const [showExitConfirmation, setShowExitConfirmation] = useState(false);
+  const [exitAction, setExitAction] = useState<() => void>(() => () => {});
   
   const { toast: uiToast } = useToast();
   const { user } = useAuth();
@@ -150,6 +162,25 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
     }));
   };
   
+  // Handle exit confirmation
+  const confirmExit = (exitCallback: () => void) => {
+    if (state.isPlaying) {
+      setExitAction(() => exitCallback);
+      setShowExitConfirmation(true);
+    } else {
+      // If not playing, just execute the callback directly
+      exitCallback();
+    }
+  };
+  
+  const handleBackClick = () => {
+    confirmExit(onBack);
+  };
+  
+  const handleEndGameClick = () => {
+    confirmExit(handleGameEnd);
+  };
+  
   // Render the appropriate game component based on the game.id
   const renderGame = () => {
     switch (game.id) {
@@ -230,7 +261,7 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
   return (
     <div className="space-y-6 py-4">
       <div className="flex items-center justify-between">
-        <Button variant="outline" onClick={onBack}>Back</Button>
+        <Button variant="outline" onClick={handleBackClick}>Back</Button>
         <div className="text-xl font-bold">{game.name}</div>
         <div className="bg-muted rounded-md px-3 py-1 font-medium">
           Score: {state.score}
@@ -258,7 +289,7 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
             <div className="bg-muted px-3 py-1 rounded-md">
               Time: {state.timeLeft}s
             </div>
-            <Button variant="outline" onClick={handleGameEnd}>End Game</Button>
+            <Button variant="outline" onClick={handleEndGameClick}>End Game</Button>
           </div>
           
           <div className="game-area min-h-[300px] border rounded-xl p-4">
@@ -277,6 +308,33 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false }: MiniGamePr
           }}
         />
       )}
+      
+      {/* Exit Confirmation Dialog */}
+      <AlertDialog
+        open={showExitConfirmation}
+        onOpenChange={setShowExitConfirmation}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to exit?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your progress in this game will be lost if you exit now.
+              {user ? " Your current score will be saved to your profile." : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No, continue playing</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                exitAction();
+                setShowExitConfirmation(false);
+              }}
+            >
+              Yes, exit game
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
