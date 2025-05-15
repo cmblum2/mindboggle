@@ -33,7 +33,7 @@ const gameData: GameType[] = [
   {
     id: 'word-recall',
     name: 'Puzzle Solver',
-    description: 'Improve your problem-solving skills with complex puzzles',
+    description: 'Challenge your logical thinking and word skills with engaging puzzles',
     icon: 'memory',
     category: 'Logic',
     difficulty: 'Medium',
@@ -48,6 +48,16 @@ const gameData: GameType[] = [
     category: 'Creative',
     difficulty: 'Easy',
     duration: '5-10 min',
+    progress: 0,
+  },
+  {
+    id: 'daily-challenge',
+    name: 'Daily Challenge',
+    description: 'A balanced mix of exercises updated daily to train multiple cognitive skills',
+    icon: 'focus',
+    category: 'Balanced',
+    difficulty: 'Medium',
+    duration: '10-15 min',
     progress: 0,
   },
 ];

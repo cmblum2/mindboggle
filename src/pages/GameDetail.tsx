@@ -55,8 +55,8 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
           },
           {
             id: 'number-sequence',
-            name: 'Number Sequence',
-            description: 'Remember and repeat sequences of numbers',
+            name: 'Focus Flow',
+            description: 'Remember and repeat sequences of numbers to improve concentration',
             category: 'Focus',
             difficulty: 'Medium',
             duration: '3 min',
@@ -65,9 +65,9 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
           },
           {
             id: 'word-recall',
-            name: 'Word Recall',
-            description: 'Memorize and recall a list of words',
-            category: 'Memory',
+            name: 'Puzzle Solver',
+            description: 'Challenge your mind with word puzzles, riddles, and logical problems',
+            category: 'Logic',
             difficulty: 'Medium',
             duration: '4 min',
             progress: user ? 0 : 0,
@@ -108,10 +108,10 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
             name: `Daily Brain Challenge (${dateString})`,
             description: 'A new balanced training exercise each day that works on multiple cognitive skills simultaneously',
             category: 'Balanced',
-            difficulty: 'Medium', // Changed from 'Adaptive' to valid type 'Medium'
+            difficulty: 'Medium',
             duration: '10 min',
             progress: user ? 0 : 0,
-            icon: 'focus', // Changed from 'brain' to valid type 'focus'
+            icon: 'focus',
             brainTarget: 'Multiple Brain Regions',
             cognitiveHealth: 'Provides comprehensive training across memory, attention, processing speed and executive function areas simultaneously.'
           }
