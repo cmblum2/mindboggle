@@ -468,23 +468,26 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
                   >
                     <Card 
                       className={cn(
-                        "aspect-square relative preserve-3d transform transition-all duration-300",
+                        "aspect-square relative h-full",
                         card.matched ? "opacity-70" : "",
-                        !card.flipped && !card.matched && !showPeek ? "hover:shadow-lg hover:scale-[1.02]" : ""
+                        !card.flipped && !card.matched && !showPeek ? "hover:shadow-lg hover:scale-[1.02]" : "",
+                        "perspective-500"
                       )}
                     >
                       {/* Back of card (question mark side) */}
                       <div className={cn(
                         "absolute inset-0 flex items-center justify-center backface-hidden rounded-lg",
                         `bg-gradient-to-br ${getThemeClass(currentTheme)}`,
-                        "text-white shadow-md"
+                        "text-white shadow-md",
+                        "card-face card-back"
                       )}>
                         <span className="text-xl drop-shadow-sm">?</span>
                       </div>
                       
                       {/* Front of card (emoji/symbol side) */}
                       <div className={cn(
-                        "absolute inset-0 flex items-center justify-center backface-hidden bg-white rounded-lg transform rotateY-180 shadow-md",
+                        "absolute inset-0 flex items-center justify-center backface-hidden bg-white rounded-lg shadow-md",
+                        "card-face card-front",
                         card.matched && "bg-green-50"
                       )}>
                         <span className="text-4xl">{card.symbol}</span>
@@ -557,17 +560,29 @@ const MemoryGame = ({ onScoreChange, onGameEnd, difficulty = 'easy' }: MemoryGam
         )}
       </div>
 
-      <style jsx>{`
-        .preserve-3d {
+      {/* Fix the style tag to use regular style element */}
+      <style>
+        {`
+        .perspective-500 {
+          perspective: 500px;
           transform-style: preserve-3d;
         }
         .backface-hidden {
           backface-visibility: hidden;
         }
-        .rotateY-180 {
+        .card-face {
+          transition: transform 0.6s;
+          transform-style: preserve-3d;
+        }
+        .card-back {
+          z-index: 2;
+          transform: rotateY(0deg);
+        }
+        .card-front {
           transform: rotateY(180deg);
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
