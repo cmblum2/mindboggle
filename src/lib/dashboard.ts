@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UserStats {
@@ -50,28 +51,37 @@ export const getUserStats = async (userId: string): Promise<UserStats> => {
     }
 
     // Calculate all-time stats using averages and totals
+    // Ensure we're getting an accurate count of total games played
     const gamesPlayed = performanceData.length;
     const streak = calculateStreak(performanceData);
     const latestRecord = performanceData[0]; // For last played date
     
-    // Calculate aggregate scores using all game data
+    // Calculate aggregate scores using all valid game data
     let totalMemoryScore = 0;
     let totalFocusScore = 0;
     let totalSpeedScore = 0;
     let totalOverallScore = 0;
+    let validRecords = 0;
     
     performanceData.forEach(record => {
-      totalMemoryScore += record.memory_score;
-      totalFocusScore += record.focus_score;
-      totalSpeedScore += record.speed_score;
-      totalOverallScore += record.overall_score;
+      // Check if the record has valid scores
+      if (record.memory_score != null && 
+          record.focus_score != null && 
+          record.speed_score != null &&
+          record.overall_score != null) {
+        totalMemoryScore += record.memory_score;
+        totalFocusScore += record.focus_score;
+        totalSpeedScore += record.speed_score;
+        totalOverallScore += record.overall_score;
+        validRecords++;
+      }
     });
     
-    // Calculate all-time averages
-    const memoryScore = Math.round(totalMemoryScore / gamesPlayed);
-    const focusScore = Math.round(totalFocusScore / gamesPlayed);
-    const speedScore = Math.round(totalSpeedScore / gamesPlayed);
-    const overallScore = Math.round(totalOverallScore / gamesPlayed);
+    // Calculate all-time averages, ensuring we don't divide by zero
+    const memoryScore = validRecords > 0 ? Math.round(totalMemoryScore / validRecords) : 0;
+    const focusScore = validRecords > 0 ? Math.round(totalFocusScore / validRecords) : 0;
+    const speedScore = validRecords > 0 ? Math.round(totalSpeedScore / validRecords) : 0;
+    const overallScore = validRecords > 0 ? Math.round(totalOverallScore / validRecords) : 0;
     
     return {
       gamesPlayed,
