@@ -1,13 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Brain, Clock, Star, CheckCircle, Trophy, Sparkles, Zap } from 'lucide-react';
+import { Brain, Clock, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
-import AnimateOnScroll from '@/components/AnimateOnScroll';
-import { fadeIn, fadeInLeft } from '@/lib/animate';
-import FloatingElement from '@/components/FloatingElement';
 
 interface BalancedTrainingProps {
   onScoreChange: (score: number) => void;
@@ -21,32 +16,9 @@ const BalancedTraining = ({ onScoreChange, onGameEnd, difficulty }: BalancedTrai
   const [totalScore, setTotalScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(15); // 15 seconds per mini-game
   const [gameData, setGameData] = useState<any>(null);
+  const [userAnswer, setUserAnswer] = useState<string | number | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  const [streak, setStreak] = useState(0);
-  const [showStreak, setShowStreak] = useState(false);
-  const [scoreAnimation, setScoreAnimation] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [showTimerWarning, setShowTimerWarning] = useState(false);
-  
-  // Game modes config based on difficulty
-  const gameModes = {
-    easy: {
-      sequenceLength: 3,
-      timePerGame: 20,
-      gridSize: 3
-    },
-    medium: {
-      sequenceLength: 6,
-      timePerGame: 15,
-      gridSize: 4
-    },
-    hard: {
-      sequenceLength: 9,
-      timePerGame: 12,
-      gridSize: 5
-    }
-  };
 
   // Generate daily seed based on the current date
   const getDailySeed = () => {
@@ -65,7 +37,7 @@ const BalancedTraining = ({ onScoreChange, onGameEnd, difficulty }: BalancedTrai
   useEffect(() => {
     const dailySeed = getDailySeed();
     const gameSequence = [];
-    const sequenceLength = gameModes[difficulty].sequenceLength;
+    const sequenceLength = difficulty === 'easy' ? 3 : difficulty === 'medium' ? 6 : 9;
     
     for (let i = 0; i < sequenceLength; i++) {
       const gameTypeIndex = getRandomNumber(0, 2, dailySeed + i);
@@ -76,26 +48,12 @@ const BalancedTraining = ({ onScoreChange, onGameEnd, difficulty }: BalancedTrai
     // Initialize with the first game
     setCurrentGame(gameSequence[0]);
     generateGameData(gameSequence[0], dailySeed);
-    
-    // Reset game state
-    setTotalScore(0);
-    setGameIndex(0);
-    setStreak(0);
   }, [difficulty]);
 
   // Timer effect
   useEffect(() => {
     if (timeLeft > 0 && !showFeedback) {
-      const timer = setTimeout(() => {
-        setTimeLeft(prev => {
-          // Show warning when time is low
-          if (prev === 5) {
-            setShowTimerWarning(true);
-            setTimeout(() => setShowTimerWarning(false), 800);
-          }
-          return prev - 1;
-        });
-      }, 1000);
+      const timer = setTimeout(() => setTimeLeft(prev => prev - 1), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && !showFeedback) {
       handleAnswer(null); // Time's up
@@ -104,67 +62,26 @@ const BalancedTraining = ({ onScoreChange, onGameEnd, difficulty }: BalancedTrai
 
   // Generate game data based on the current game type
   const generateGameData = (gameType: 'memory' | 'focus' | 'speed', seed: number) => {
-    const config = gameModes[difficulty];
+    const difficultyMultiplier = difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3;
     
     switch (gameType) {
       case 'memory':
         // Generate a sequence of numbers to remember
-        const sequenceLength = 3 + (difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3);
+        const sequenceLength = 3 + difficultyMultiplier;
         const sequence = [];
         for (let i = 0; i < sequenceLength; i++) {
           sequence.push(getRandomNumber(1, 9, seed + i * 100));
         }
-        
-        // Generate answer options (including the correct one)
-        const correctAnswer = sequence.join('');
-        const answerOptions = [correctAnswer];
-        
-        // Generate 3 incorrect options that are similar but different
-        while (answerOptions.length < 4) {
-          const modifiedSequence = [...sequence];
-          // Change 1-2 digits
-          const changesToMake = difficulty === 'easy' ? 1 : 2;
-          for (let j = 0; j < changesToMake; j++) {
-            const posToChange = getRandomNumber(0, modifiedSequence.length - 1, seed + 500 + j);
-            let newDigit = getRandomNumber(1, 9, seed + 600 + j);
-            // Make sure we're changing to a different digit
-            while (newDigit === modifiedSequence[posToChange]) {
-              newDigit = getRandomNumber(1, 9, seed + 600 + j + 100);
-            }
-            modifiedSequence[posToChange] = newDigit;
-          }
-          
-          const wrongAnswer = modifiedSequence.join('');
-          if (!answerOptions.includes(wrongAnswer)) {
-            answerOptions.push(wrongAnswer);
-          }
-        }
-        
-        // Shuffle the options
-        const shuffledOptions = [...answerOptions];
-        for (let i = shuffledOptions.length - 1; i > 0; i--) {
-          const j = Math.floor(getRandomNumber(0, i, seed + 800 + i));
-          [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
-        }
-        
-        setGameData({ 
-          sequence, 
-          displayMode: true, 
-          options: shuffledOptions,
-          correctAnswerIndex: shuffledOptions.indexOf(correctAnswer)
-        });
-        
-        // Hide sequence after a few seconds (longer for easier difficulty)
-        setTimeout(() => setGameData(prev => ({ ...prev, displayMode: false })), 
-          difficulty === 'easy' ? 4000 : difficulty === 'medium' ? 3000 : 2000);
+        setGameData({ sequence, displayMode: true });
+        // Hide sequence after a few seconds
+        setTimeout(() => setGameData({ sequence, displayMode: false }), 3000);
         break;
         
       case 'focus':
-        // Generate a pattern matching puzzle with multiple choice
-        const gridSize = config.gridSize;
+        // Generate a pattern matching puzzle
+        const gridSize = 3 + difficultyMultiplier;
         const target = getRandomNumber(1, 9, seed);
         const grid = [];
-        
         for (let i = 0; i < gridSize; i++) {
           const row = [];
           for (let j = 0; j < gridSize; j++) {
@@ -173,53 +90,17 @@ const BalancedTraining = ({ onScoreChange, onGameEnd, difficulty }: BalancedTrai
           }
           grid.push(row);
         }
-        
         // Count targets in grid
         const targetsCount = grid.flat().filter(num => num === target).length;
-        
-        // Generate answer options around the correct answer
-        const focusOptions = [];
-        
-        // Add correct answer
-        focusOptions.push(targetsCount);
-        
-        // Add close but wrong answers
-        while (focusOptions.length < 4) {
-          let offset = getRandomNumber(1, 3, seed + focusOptions.length * 100);
-          if (Math.random() > 0.5) offset = -offset;
-          
-          const wrongAnswer = Math.max(0, targetsCount + offset);
-          if (!focusOptions.includes(wrongAnswer)) {
-            focusOptions.push(wrongAnswer);
-          }
-        }
-        
-        // Shuffle options
-        const shuffledFocusOptions = [...focusOptions];
-        for (let i = shuffledFocusOptions.length - 1; i > 0; i--) {
-          const j = Math.floor(getRandomNumber(0, i, seed + 700 + i));
-          [shuffledFocusOptions[i], shuffledFocusOptions[j]] = [shuffledFocusOptions[j], shuffledFocusOptions[i]];
-        }
-        
-        setGameData({ 
-          grid, 
-          target, 
-          options: shuffledFocusOptions,
-          correctAnswerIndex: shuffledFocusOptions.indexOf(targetsCount)
-        });
+        setGameData({ grid, target, answer: targetsCount });
         break;
         
       case 'speed':
-        // Generate a quick math problem with multiple choice
+        // Generate a quick math problem
         const operations = ['+', '-', '*'];
         const operation = operations[getRandomNumber(0, 2, seed)];
-        
-        // Adjust number ranges based on difficulty
-        const maxNum1 = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30;
-        const maxNum2 = difficulty === 'easy' ? 5 : difficulty === 'medium' ? 10 : 15;
-        
-        const num1 = getRandomNumber(1, maxNum1, seed + 1);
-        const num2 = getRandomNumber(1, maxNum2, seed + 2);
+        const num1 = getRandomNumber(1, 10 * difficultyMultiplier, seed + 1);
+        const num2 = getRandomNumber(1, 10, seed + 2);
         
         let answer;
         switch (operation) {
@@ -229,83 +110,38 @@ const BalancedTraining = ({ onScoreChange, onGameEnd, difficulty }: BalancedTrai
           default: answer = num1 + num2;
         }
         
-        // Generate options (including correct answer)
-        const mathOptions = [answer];
-        
-        // Generate wrong but close answers
-        while (mathOptions.length < 4) {
-          let offset = getRandomNumber(1, Math.max(5, Math.floor(answer / 4)), seed + mathOptions.length * 50);
-          if (Math.random() > 0.5) offset = -offset;
-          
-          const wrongAnswer = Math.max(0, answer + offset);
-          if (!mathOptions.includes(wrongAnswer)) {
-            mathOptions.push(wrongAnswer);
-          }
-        }
-        
-        // Shuffle options
-        const shuffledMathOptions = [...mathOptions];
-        for (let i = shuffledMathOptions.length - 1; i > 0; i--) {
-          const j = Math.floor(getRandomNumber(0, i, seed + 900 + i));
-          [shuffledMathOptions[i], shuffledMathOptions[j]] = [shuffledMathOptions[j], shuffledMathOptions[i]];
-        }
-        
-        setGameData({ 
-          num1, 
-          num2, 
-          operation, 
-          options: shuffledMathOptions,
-          correctAnswerIndex: shuffledMathOptions.indexOf(answer)
-        });
+        setGameData({ num1, num2, operation, answer });
         break;
     }
     
     // Reset for the new mini-game
-    setTimeLeft(config.timePerGame);
-    setSelectedAnswer(null);
+    setTimeLeft(15);
+    setUserAnswer(null);
     setShowFeedback(false);
   };
 
   // Handle user's answer
-  const handleAnswer = (answerIndex: number | null) => {
-    if (showFeedback) return; // Prevent multiple submissions
-    
-    setSelectedAnswer(answerIndex);
+  const handleAnswer = (answer: string | number | null) => {
+    setUserAnswer(answer);
     setShowFeedback(true);
     
     // Check if answer is correct
-    const correct = answerIndex === gameData?.correctAnswerIndex;
+    let correct = false;
+    if (currentGame === 'memory') {
+      correct = gameData?.sequence?.join('') === answer;
+    } else if (currentGame === 'focus') {
+      correct = gameData?.answer === Number(answer);
+    } else if (currentGame === 'speed') {
+      correct = gameData?.answer === Number(answer);
+    }
     
     setIsCorrect(correct);
     
-    // Update streak
+    // Update score
     if (correct) {
-      const newStreak = streak + 1;
-      setStreak(newStreak);
-      
-      // Show streak animation for streaks of 3 or more
-      if (newStreak >= 3) {
-        setShowStreak(true);
-        setTimeout(() => setShowStreak(false), 1500);
-      }
-      
-      // Calculate points with streak bonus
-      const basePoints = 10;
-      const timeBonus = timeLeft * 2;
-      const streakMultiplier = Math.min(2, 1 + (newStreak * 0.1)); // Max 2x multiplier
-      
-      const points = Math.round((basePoints + timeBonus) * streakMultiplier);
-      const newTotalScore = totalScore + points;
-      
-      setTotalScore(newTotalScore);
-      onScoreChange(newTotalScore);
-      
-      // Animate score
-      setScoreAnimation(true);
-      setTimeout(() => setScoreAnimation(false), 800);
-    } else {
-      // Reset streak on wrong answer
-      setStreak(0);
+      const points = 10 + (timeLeft * 2);
+      setTotalScore(prev => prev + points);
+      onScoreChange(totalScore + points);
     }
     
     // Show feedback briefly
@@ -319,7 +155,7 @@ const BalancedTraining = ({ onScoreChange, onGameEnd, difficulty }: BalancedTrai
   const moveToNextGame = () => {
     const dailySeed = getDailySeed();
     const nextIndex = gameIndex + 1;
-    const sequenceLength = gameModes[difficulty].sequenceLength;
+    const sequenceLength = difficulty === 'easy' ? 3 : difficulty === 'medium' ? 6 : 9;
     
     if (nextIndex < sequenceLength) {
       setGameIndex(nextIndex);
@@ -333,70 +169,18 @@ const BalancedTraining = ({ onScoreChange, onGameEnd, difficulty }: BalancedTrai
     }
   };
 
-  // Get color scheme based on current game type
-  const getGameColors = () => {
-    switch(currentGame) {
-      case 'memory':
-        return {
-          primary: 'text-brain-purple',
-          border: 'border-brain-purple/30',
-          bg: 'bg-brain-purple/10',
-          buttonHover: 'hover:bg-brain-purple/20',
-          buttonActive: 'bg-brain-purple',
-          icon: <Brain className="h-5 w-5 text-brain-purple" />
-        };
-      case 'focus':
-        return {
-          primary: 'text-brain-teal',
-          border: 'border-brain-teal/30',
-          bg: 'bg-brain-teal/10',
-          buttonHover: 'hover:bg-brain-teal/20',
-          buttonActive: 'bg-brain-teal',
-          icon: <Zap className="h-5 w-5 text-brain-teal" />
-        };
-      case 'speed':
-        return {
-          primary: 'text-brain-coral',
-          border: 'border-brain-coral/30',
-          bg: 'bg-brain-coral/10',
-          buttonHover: 'hover:bg-brain-coral/20',
-          buttonActive: 'bg-brain-coral',
-          icon: <Clock className="h-5 w-5 text-brain-coral" />
-        };
-      default:
-        return {
-          primary: 'text-brain-teal',
-          border: 'border-brain-teal/30',
-          bg: 'bg-brain-teal/10',
-          buttonHover: 'hover:bg-brain-teal/20',
-          buttonActive: 'bg-brain-teal',
-          icon: <Brain className="h-5 w-5 text-brain-teal" />
-        };
-    }
-  };
-
-  const colors = getGameColors();
-
   // Render the current game
   const renderGame = () => {
     if (showFeedback) {
       return (
-        <AnimateOnScroll animation={fadeIn(100)} className="w-full">
-          <div className={`flex flex-col items-center justify-center space-y-4 p-8 rounded-xl ${isCorrect ? 'bg-green-50' : 'bg-red-50'}`}>
-            <div className={`text-4xl ${isCorrect ? 'text-green-500' : 'text-red-500'}`}>
-              {isCorrect 
-                ? <CheckCircle className="h-16 w-16" />
-                : <div className="text-2xl font-medium">Incorrect!</div>
-              }
-            </div>
-            <div className="text-lg mt-4">
-              {isCorrect 
-                ? <span className="font-medium text-green-600">+{10 + (timeLeft * 2)} points</span> 
-                : <span className="text-red-600">Try again on the next challenge!</span>
-              }
-            </div>
+        <div className="flex flex-col items-center justify-center space-y-4 p-8">
+          <div className={`text-3xl ${isCorrect ? 'text-green-500' : 'text-red-500'}`}>
+            {isCorrect ? 'Correct!' : 'Incorrect!'}
           </div>
-        </AnimateOnScroll>
+          <div className="text-lg">
+            {isCorrect ? `+${10 + (timeLeft * 2)} points` : 'No points awarded'}
+          </div>
+        </div>
       );
     }
     
@@ -404,34 +188,29 @@ const BalancedTraining = ({ onScoreChange, onGameEnd, difficulty }: BalancedTrai
       case 'memory':
         return (
           <div className="space-y-6 p-4 text-center">
-            <div className={`text-lg font-medium ${colors.primary} mb-4`}>
+            <div className="text-lg font-medium text-brain-purple mb-4">
               Remember this sequence
             </div>
             
             {gameData?.displayMode ? (
-              <div className="text-3xl font-bold tracking-widest animate-pulse">
+              <div className="text-3xl font-bold tracking-widest">
                 {gameData?.sequence?.join(' ')}
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="text-lg mb-4">Select the correct sequence:</div>
-                <div className="grid grid-cols-1 gap-3">
-                  {gameData?.options.map((option: string, index: number) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="lg"
-                      className={cn(
-                        "py-6 text-lg justify-center", 
-                        colors.border,
-                        selectedAnswer === index ? colors.buttonActive + ' text-white' : colors.buttonHover
-                      )}
-                      onClick={() => handleAnswer(index)}
-                    >
-                      {option}
-                    </Button>
-                  ))}
-                </div>
+                <div className="text-lg">Enter the sequence you saw:</div>
+                <input
+                  type="text"
+                  className="p-2 border rounded w-full text-center text-xl"
+                  onChange={(e) => setUserAnswer(e.target.value)}
+                  autoFocus
+                />
+                <Button 
+                  onClick={() => handleAnswer(userAnswer)}
+                  className="w-full"
+                >
+                  Submit
+                </Button>
               </div>
             )}
           </div>
@@ -440,15 +219,15 @@ const BalancedTraining = ({ onScoreChange, onGameEnd, difficulty }: BalancedTrai
       case 'focus':
         return (
           <div className="space-y-6 p-4 text-center">
-            <div className={`text-lg font-medium ${colors.primary} mb-2`}>
+            <div className="text-lg font-medium text-brain-teal mb-2">
               Count how many times you see the number: <span className="text-2xl font-bold">{gameData?.target}</span>
             </div>
             
-            <div className="grid gap-2 mx-auto max-w-md" style={{ 
-              gridTemplateColumns: `repeat(${Math.sqrt(gameData?.grid?.flat().length || 9)}, 1fr)` 
+            <div className="grid gap-2" style={{ 
+              gridTemplateColumns: `repeat(${gameData?.grid?.[0]?.length || 3}, 1fr)` 
             }}>
               {gameData?.grid?.flat().map((num: number, idx: number) => (
-                <Card key={idx} className={`aspect-square flex items-center justify-center ${colors.border} ${num === gameData?.target ? colors.bg : ''}`}>
+                <Card key={idx} className="aspect-square flex items-center justify-center">
                   <CardContent className="p-0 flex items-center justify-center h-full">
                     <span className="text-xl font-medium">{num}</span>
                   </CardContent>
@@ -457,24 +236,18 @@ const BalancedTraining = ({ onScoreChange, onGameEnd, difficulty }: BalancedTrai
             </div>
             
             <div className="space-y-4 pt-2">
-              <div className="text-lg mb-2">How many {gameData?.target}'s did you count?</div>
-              <div className="grid grid-cols-2 gap-3">
-                {gameData?.options.map((option: number, index: number) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="lg"
-                    className={cn(
-                      "py-6 text-lg", 
-                      colors.border,
-                      selectedAnswer === index ? colors.buttonActive + ' text-white' : colors.buttonHover
-                    )}
-                    onClick={() => handleAnswer(index)}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
+              <div className="text-lg">How many {gameData?.target}'s did you count?</div>
+              <input
+                type="number"
+                className="p-2 border rounded w-full text-center text-xl"
+                onChange={(e) => setUserAnswer(e.target.value)}
+              />
+              <Button 
+                onClick={() => handleAnswer(userAnswer)}
+                className="w-full"
+              >
+                Submit
+              </Button>
             </div>
           </div>
         );
@@ -482,30 +255,27 @@ const BalancedTraining = ({ onScoreChange, onGameEnd, difficulty }: BalancedTrai
       case 'speed':
         return (
           <div className="space-y-6 p-4 text-center">
-            <div className={`text-lg font-medium ${colors.primary} mb-4`}>
+            <div className="text-lg font-medium text-brain-coral mb-4">
               Solve this math problem quickly!
             </div>
             
-            <div className="text-3xl font-bold mb-6">
+            <div className="text-3xl font-bold">
               {gameData?.num1} {gameData?.operation} {gameData?.num2} = ?
             </div>
             
-            <div className="grid grid-cols-2 gap-3">
-              {gameData?.options.map((option: number, index: number) => (
-                <Button
-                  key={index}
-                  variant="outline" 
-                  size="lg"
-                  className={cn(
-                    "py-6 text-lg", 
-                    colors.border,
-                    selectedAnswer === index ? colors.buttonActive + ' text-white' : colors.buttonHover
-                  )}
-                  onClick={() => handleAnswer(index)}
-                >
-                  {option}
-                </Button>
-              ))}
+            <div className="space-y-4 pt-2">
+              <input
+                type="number"
+                className="p-2 border rounded w-full text-center text-xl"
+                onChange={(e) => setUserAnswer(e.target.value)}
+                autoFocus
+              />
+              <Button 
+                onClick={() => handleAnswer(userAnswer)}
+                className="w-full"
+              >
+                Submit
+              </Button>
             </div>
           </div>
         );
@@ -513,84 +283,40 @@ const BalancedTraining = ({ onScoreChange, onGameEnd, difficulty }: BalancedTrai
   };
 
   return (
-    <div className="balanced-training-container relative">
-      {/* Streak animation overlay */}
-      {showStreak && (
-        <div className="absolute inset-0 bg-gradient-to-b from-yellow-500/20 to-transparent z-10 pointer-events-none flex items-center justify-center">
-          <FloatingElement speed="fast">
-            <div className="flex items-center bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full shadow-lg">
-              <Trophy className="h-5 w-5 mr-2 text-yellow-600" />
-              <span className="text-lg font-bold">{streak} Streak!</span>
-            </div>
-          </FloatingElement>
+    <div className="balanced-training-container">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center">
+          <Brain className={`h-5 w-5 mr-2 ${
+            currentGame === 'memory' ? 'text-brain-purple' : 
+            currentGame === 'focus' ? 'text-brain-teal' : 
+            'text-brain-coral'
+          }`} />
+          <span className="font-medium">{
+            currentGame === 'memory' ? 'Memory' : 
+            currentGame === 'focus' ? 'Focus' : 
+            'Speed'
+          } Task</span>
         </div>
-      )}
-
-      {/* Timer warning flash */}
-      {showTimerWarning && (
-        <div className="absolute inset-0 bg-red-500/10 z-5 pointer-events-none animate-pulse"></div>
-      )}
+        
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center">
+            <Clock className="h-4 w-4 mr-1" />
+            <span className={`${timeLeft < 5 ? 'text-red-500 font-bold' : ''}`}>{timeLeft}s</span>
+          </div>
+          <div className="flex items-center">
+            <Star className="h-4 w-4 mr-1 text-yellow-500" />
+            <span>{totalScore}</span>
+          </div>
+        </div>
+      </div>
       
-      <Card className={cn(
-        "border transition-all duration-300", 
-        colors.border,
-        colors.bg
-      )}>
-        <CardContent className="p-4">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center">
-              {colors.icon}
-              <span className={`font-medium ml-2 ${colors.primary}`}>{
-                currentGame === 'memory' ? 'Memory Challenge' : 
-                currentGame === 'focus' ? 'Focus Challenge' : 
-                'Speed Challenge'
-              }</span>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <AnimateOnScroll animation={fadeIn(100)} key={`score-${totalScore}`} className="flex items-center">
-                <Star className={`h-4 w-4 mr-1 text-yellow-500 ${scoreAnimation ? 'animate-ping' : ''}`} />
-                <span className={`${scoreAnimation ? 'font-bold' : ''}`}>{totalScore}</span>
-              </AnimateOnScroll>
-              
-              <AnimateOnScroll animation={fadeIn(100)} key={`timer-${timeLeft}`} className="flex items-center">
-                <Clock className={`h-4 w-4 mr-1 ${timeLeft < 5 ? 'text-red-500 animate-pulse' : ''}`} />
-                <span className={`${timeLeft < 5 ? 'text-red-500 font-bold' : ''}`}>{timeLeft}s</span>
-              </AnimateOnScroll>
-            </div>
-          </div>
-          
-          {/* Streak indicator */}
-          {streak > 0 && (
-            <div className="mb-3">
-              <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>Streak bonus x{Math.min(2, (1 + (streak * 0.1))).toFixed(1)}</span>
-                <span>{streak} {streak === 1 ? 'correct answer' : 'correct answers'} in a row</span>
-              </div>
-              <Progress 
-                value={Math.min(100, (streak / 10) * 100)} 
-                className={`h-1.5 ${
-                  currentGame === 'memory' ? 'bg-brain-purple' :
-                  currentGame === 'focus' ? 'bg-brain-teal' :
-                  'bg-brain-coral'
-                }`}
-              />
-            </div>
-          )}
-          
-          <div className="game-content min-h-[350px] rounded-xl p-4 flex flex-col justify-center bg-white border">
-            {renderGame()}
-          </div>
-          
-          <div className="flex justify-between items-center mt-4 text-sm text-muted-foreground">
-            <span>Game {gameIndex + 1} of {gameModes[difficulty].sequenceLength}</span>
-            <span className="flex items-center">
-              <Sparkles className="h-4 w-4 mr-1 text-yellow-400" />
-              Daily Brain Challenge
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="game-content min-h-[300px] border rounded-xl p-4 flex flex-col justify-center">
+        {renderGame()}
+      </div>
+      
+      <div className="mt-4 text-sm text-muted-foreground">
+        Game {gameIndex + 1} of {difficulty === 'easy' ? 3 : difficulty === 'medium' ? 6 : 9} • Daily Balanced Training
+      </div>
     </div>
   );
 };
