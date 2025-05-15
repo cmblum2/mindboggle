@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -25,6 +24,7 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   const { toast: toastFromUI } = useToast();
   const [refreshKey, setRefreshKey] = useState(0); // Used to force data refresh
   const refreshTimeoutRef = useRef<number | null>(null);
+  const toastDisplayedRef = useRef(false);
   
   const [stats, setStats] = useState<UserStats>({
     gamesPlayed: 0,
@@ -46,29 +46,23 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   // Debounced refresh function to prevent multiple rapid refreshes
   const debouncedRefresh = useCallback(() => {
     // If already refreshing, don't trigger again
-    if (isRefreshing) return;
-    
-    // If there's a pending refresh, clear it
     if (refreshTimeoutRef.current) {
       clearTimeout(refreshTimeoutRef.current);
     }
     
-    // Mark as refreshing
-    setIsRefreshing(true);
-    
     // Set a new timeout
     refreshTimeoutRef.current = window.setTimeout(() => {
       setRefreshKey(prevKey => prevKey + 1);
-      setRecommendationsKey(prevKey => prevKey + 1);
-      setDailyChallengesKey(prevKey => prevKey + 1);
       
-      // Show toast only once
-      toast.info("Your AI recommendations have been updated based on your latest activity!");
+      // Show toast only once per session
+      if (!toastDisplayedRef.current) {
+        toast.info("Your AI recommendations have been updated based on your latest activity!");
+        toastDisplayedRef.current = true;
+      }
       
-      setIsRefreshing(false);
       refreshTimeoutRef.current = null;
     }, 1000); // 1 second debounce
-  }, [isRefreshing]);
+  }, []);
   
   // Check if we should refresh stats (coming from game completion)
   useEffect(() => {
@@ -188,7 +182,7 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
             <h2 className="text-2xl font-bold mb-4">Daily Challenges</h2>
             {user && (
               <DailyChallenges 
-                key={dailyChallengesKey} // Use key to force remount when needed
+                key={`daily-challenges-${refreshKey}`} // Use key to force remount only when refresh is needed
                 userId={user.id}
                 onChallengeComplete={handleChallengeComplete}
               />

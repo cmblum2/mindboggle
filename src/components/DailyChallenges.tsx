@@ -22,6 +22,7 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
   const [previousCompletedCount, setPreviousCompletedCount] = useState<number>(0);
   const isFirstLoad = useRef(true);
   const refreshTimeoutRef = useRef<number | null>(null);
+  const challengesFetched = useRef(false);
   
   // Function to check if challenges need to reset (it's a new day)
   const shouldRefreshChallenges = () => {
@@ -48,6 +49,11 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
   };
   
   useEffect(() => {
+    // Only load challenges once per component mount
+    if (challengesFetched.current) {
+      return;
+    }
+    
     const loadChallenges = async () => {
       try {
         setIsLoading(true);
@@ -73,6 +79,8 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
         
         // After first successful load, set firstLoad to false
         isFirstLoad.current = false;
+        // Mark that we've fetched challenges
+        challengesFetched.current = true;
       } catch (error) {
         console.error('Error loading daily challenges:', error);
         toast.error('Could not load your daily challenges');
@@ -88,27 +96,58 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
     // Check for day change when component mounts or regains focus
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && shouldRefreshChallenges()) {
+        // Reset the fetched flag when we need to refresh on a new day
+        challengesFetched.current = false;
         loadChallenges();
       }
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    // Set up periodic refresh every minute to check for auto-completed challenges
-    const intervalId = setInterval(() => {
-      loadChallenges();
+    // Only update challenges state periodically (once every 5 minutes) to check for auto-completed challenges
+    // without causing rendering glitches
+    const checkCompletionInterval = setInterval(() => {
+      // Do not fetch if we're loading or if the document isn't visible
+      if (isLoading || document.visibilityState !== 'visible') {
+        return;
+      }
+
+      // Check for completion status updates without replacing the entire challenge list
+      const checkChallengeCompletion = async () => {
+        try {
+          const updatedChallenges = await getDailyChallenges(userId, false);
+          
+          // Count newly completed challenges
+          const newCompletedCount = updatedChallenges.filter(c => c.completed).length;
+          
+          // Only update if completion count changed
+          if (newCompletedCount > previousCompletedCount) {
+            setChallenges(updatedChallenges);
+            setPreviousCompletedCount(newCompletedCount);
+            
+            // Notify only if not first load
+            if (!isFirstLoad.current) {
+              notifyChallengeComplete();
+            }
+          }
+        } catch (error) {
+          console.error('Error checking challenge completion:', error);
+        }
+      };
+      
+      checkChallengeCompletion();
     }, 300000); // 5 minutes
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      clearInterval(intervalId);
+      clearInterval(checkCompletionInterval);
       
       // Clear any pending timeouts on unmount
       if (refreshTimeoutRef.current) {
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, [userId, onChallengeComplete]);
+  }, [userId, onChallengeComplete, isLoading]);
   
   const getChallengeIcon = (type: string) => {
     switch (type) {
@@ -169,7 +208,7 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
             <div className="space-y-3">
               {challenges.map((challenge, index) => (
                 <AnimateOnScroll
-                  key={challenge.id}
+                  key={`${challenge.id}-${index}`}
                   animation={fadeInLeft(index * 100)}
                   className="w-full"
                 >
