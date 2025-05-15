@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import NavBar from '@/components/NavBar';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Progress } from '@/components/ui/progress';
 
 interface IndexProps {
   navBarExtension?: React.ReactNode;
@@ -81,6 +83,12 @@ const Index = ({ navBarExtension }: IndexProps) => {
     }
   };
   
+  // Calculate progress percentage safely
+  const progressPercentage = Math.min(
+    (dailyProgress.completed / dailyProgress.total) * 100, 
+    100 // Limit to maximum of 100%
+  );
+  
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar 
@@ -142,10 +150,10 @@ const Index = ({ navBarExtension }: IndexProps) => {
                         </div>
                         <div className="col-span-2 bg-muted p-3 rounded-lg">
                           <div className="text-sm font-medium mb-1">Today's Progress</div>
-                          <div className="w-full bg-muted-foreground/20 rounded-full h-2">
+                          <div className="w-full bg-muted-foreground/20 rounded-full h-2 overflow-hidden">
                             <div 
                               className="h-2 rounded-full bg-gradient-to-r from-brain-purple to-brain-teal" 
-                              style={{ width: `${(dailyProgress.completed / dailyProgress.total) * 100}%` }}
+                              style={{ width: `${progressPercentage}%` }}
                             ></div>
                           </div>
                           <div className="mt-1 text-xs text-muted-foreground">
