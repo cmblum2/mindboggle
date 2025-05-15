@@ -1,187 +1,74 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 220 33% 98%;
-    --foreground: 222 47% 11%;
-
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-
-    --primary: 262 100% 69%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 173 50% 50%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-
-    --accent: 173 50% 50%;
-    --accent-foreground: 222 47% 11%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 262 100% 69%;
-
-    --radius: 1rem;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-
-    --card: 222 47% 13%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222 47% 13%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 262 100% 69%;
-    --primary-foreground: 222 47% 11%;
-
-    --secondary: 173 50% 50%;
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 173 50% 50%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217 33% 25%;
-    --input: 217 33% 25%;
-    --ring: 262 100% 69%;
-    
-    /* Add Sidebar variables for dark mode */
-    --sidebar-background: 222 47% 10%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 262 100% 69%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 173 50% 50%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 25%;
-    --sidebar-ring: 262 100% 69%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
   }
+}
 
+@layer base {
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground font-outfit;
+    @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    scroll-behavior: smooth;
   }
 }
 
-@layer utilities {
-  .font-outfit {
-    font-family: 'Outfit', sans-serif;
-  }
-  
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-brain-purple via-brain-teal to-brain-coral;
-  }
-  
-  .brain-card {
-    @apply rounded-2xl bg-card p-6 shadow-md transition-all duration-300 hover:shadow-lg;
-  }
-
-  .brain-button {
-    @apply rounded-full px-6 py-3 font-medium transition-all duration-200 transform hover:scale-105;
-  }
-  
-  .animation-delay-100 {
-    animation-delay: 100ms;
-  }
-  
-  .animation-delay-200 {
-    animation-delay: 200ms;
-  }
-  
-  .animation-delay-300 {
-    animation-delay: 300ms;
-  }
-  
-  .animation-delay-400 {
-    animation-delay: 400ms;
-  }
-  
-  .animation-delay-500 {
-    animation-delay: 500ms;
-  }
-  
-  .delay-100 {
-    transition-delay: 100ms;
-  }
-  
-  .delay-200 {
-    transition-delay: 200ms;
-  }
-  
-  .delay-300 {
-    transition-delay: 300ms;
-  }
-  
-  .delay-400 {
-    transition-delay: 400ms;
-  }
-  
-  .delay-500 {
-    transition-delay: 500ms;
-  }
+/* Card flip animations */
+.preserve-3d {
+  transform-style: preserve-3d;
 }
 
-@layer components {
-  .game-container {
-    @apply bg-card rounded-2xl p-6 shadow-xl border border-brain-teal/20 transition-all duration-300 hover:shadow-2xl;
-    background-image: radial-gradient(circle at top right, rgba(123, 97, 255, 0.05), transparent 400px), 
-                      radial-gradient(circle at bottom left, rgba(65, 191, 179, 0.05), transparent 400px);
-  }
-  
-  .dark .game-container {
-    background-image: radial-gradient(circle at top right, rgba(123, 97, 255, 0.1), transparent 400px), 
-                     radial-gradient(circle at bottom left, rgba(65, 191, 179, 0.1), transparent 400px);
-  }
-  
-  .interactive-card {
-    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:bg-card/80;
-  }
-  
-  .shine-effect {
-    @apply relative overflow-hidden;
-  }
-  
-  .shine-effect::after {
-    @apply absolute inset-0 -translate-x-full;
-    content: '';
-    background: linear-gradient(
-      to right,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.2) 50%,
-      rgba(255, 255, 255, 0) 100%
-    );
-    animation: shine 3s infinite;
-  }
-  
-  @keyframes shine {
-    100% {
-      transform: translateX(100%);
-    }
-  }
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotateY-180 {
+  transform: rotateY(180deg);
 }
