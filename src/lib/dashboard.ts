@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UserStats {
@@ -40,7 +39,7 @@ export const getUserStats = async (userId: string): Promise<UserStats> => {
     if (!performanceData || performanceData.length === 0) {
       return {
         gamesPlayed: 0,
-        streak: calculateStreak([]),
+        streak: 0,
         overallScore: 0,
         memoryScore: 0,
         focusScore: 0,
@@ -137,29 +136,49 @@ export const saveGameResults = async (
 const calculateStreak = (performanceData: any[]): number => {
   if (!performanceData || performanceData.length === 0) return 0;
   
-  let streak = 1;
-  const today = new Date().setHours(0, 0, 0, 0);
-  const oneDayMs = 86400000; // 24 hours in milliseconds
-  
-  // Sort by date descending
+  // Sort by date descending (latest first)
   const sortedData = [...performanceData].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
   
-  // Check if the most recent play was today
-  const mostRecentDate = new Date(sortedData[0].date).setHours(0, 0, 0, 0);
-  if (mostRecentDate < today - oneDayMs) {
-    return 0; // Streak broken if not played yesterday or today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const oneDayMs = 86400000; // 24 hours in milliseconds
+  
+  // Check if the most recent play was today or yesterday (to maintain streak)
+  const mostRecentDate = new Date(sortedData[0].date);
+  mostRecentDate.setHours(0, 0, 0, 0);
+  
+  // If most recent game is older than yesterday, streak is broken
+  if (mostRecentDate.getTime() < today.getTime() - oneDayMs) {
+    return 0;
   }
   
+  // Get all days with activity
+  const activeDays = new Set<string>();
+  
+  // Add all play days to the set (normalized to midnight)
+  sortedData.forEach(data => {
+    const playDate = new Date(data.date);
+    playDate.setHours(0, 0, 0, 0);
+    activeDays.add(playDate.toISOString().split('T')[0]);
+  });
+  
   // Count consecutive days
-  for (let i = 0; i < sortedData.length - 1; i++) {
-    const currentDay = new Date(sortedData[i].date).setHours(0, 0, 0, 0);
-    const prevDay = new Date(sortedData[i + 1].date).setHours(0, 0, 0, 0);
+  let streak = 1; // Start with 1 for the most recent day
+  let currentDate = new Date(mostRecentDate);
+  
+  // Work backward from the most recent day
+  while (streak < activeDays.size) {
+    // Move to previous day
+    currentDate.setDate(currentDate.getDate() - 1);
+    const dayKey = currentDate.toISOString().split('T')[0];
     
-    if (currentDay - prevDay <= oneDayMs) {
+    // If there was activity on this day, increase streak
+    if (activeDays.has(dayKey)) {
       streak++;
     } else {
+      // Break at the first day without activity
       break;
     }
   }
