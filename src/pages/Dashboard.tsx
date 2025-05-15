@@ -38,7 +38,8 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
   
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [recommendationsKey, setRecommendationsKey] = useState(0); // New state to specifically trigger recommendations refresh
+  const [dailyChallengesKey, setDailyChallengesKey] = useState(0); // New state to refresh daily challenges
+  const [recommendationsKey, setRecommendationsKey] = useState(0); // State to specifically trigger recommendations refresh
   
   // Check if we should refresh stats (coming from game completion)
   useEffect(() => {
@@ -52,9 +53,10 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
       if (location.state?.refreshStats) {
         window.history.replaceState({}, document.title);
       }
-      // Trigger refresh of both stats and recommendations
+      // Trigger refresh of stats, recommendations, and daily challenges
       setRefreshKey(prevKey => prevKey + 1);
-      setRecommendationsKey(prevKey => prevKey + 1); // Force recommendations to refresh as well
+      setRecommendationsKey(prevKey => prevKey + 1);
+      setDailyChallengesKey(prevKey => prevKey + 1); // Refresh daily challenges too
       
       // Show toast to indicate recommendations have been updated
       toast.info("Your AI recommendations have been updated based on your latest activity!");
@@ -99,7 +101,7 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
     setRecommendationsKey(prevKey => prevKey + 1);
     
     // Show a success message
-    toast.success("Great job! Your stats are being updated.");
+    toast.success("Challenge completed! Your stats are being updated.");
   };
   
   return (
@@ -156,6 +158,7 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
             <h2 className="text-2xl font-bold mb-4">Daily Challenges</h2>
             {user && (
               <DailyChallenges 
+                key={dailyChallengesKey} // Use key to force remount when needed
                 userId={user.id}
                 onChallengeComplete={handleChallengeComplete}
               />

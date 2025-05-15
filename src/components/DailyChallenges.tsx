@@ -1,15 +1,13 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, Circle, CalendarDays, BrainCircuit, Lightbulb, Zap, Trophy, Award, Star, Check } from 'lucide-react';
+import { CalendarDays, BrainCircuit, Lightbulb, Zap, Trophy, Award, Star, Check } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from "sonner";
-import { DailyChallenge, getDailyChallenges, updateChallengeStatus } from '@/lib/dashboard';
+import { DailyChallenge, getDailyChallenges } from '@/lib/dashboard';
 import { useAuth } from '@/hooks/useAuth';
 import AnimateOnScroll from '@/components/AnimateOnScroll';
 import { fadeIn, fadeInLeft, pulseOnHover } from '@/lib/animate';
-import { Checkbox } from '@/components/ui/checkbox';
 
 interface DailyChallengesProps {
   userId: string;
@@ -45,6 +43,13 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
         
         // Store today's date after successful refresh
         setLastRefreshDate(new Date().toLocaleDateString());
+
+        // Check if any challenges were newly completed
+        const completedChallenges = dailyChallenges.filter(c => c.completed);
+        if (completedChallenges.length > 0) {
+          // Notify parent component that challenges have been completed
+          onChallengeComplete();
+        }
       } catch (error) {
         console.error('Error loading daily challenges:', error);
         toast.error('Could not load your daily challenges');
@@ -66,38 +71,16 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
+    // Set up periodic refresh every minute to check for auto-completed challenges
+    const intervalId = setInterval(() => {
+      loadChallenges();
+    }, 60000); // Check every minute
+    
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(intervalId);
     };
-  }, [userId]);
-  
-  const handleToggleChallenge = async (challengeId: string, currentStatus: boolean) => {
-    try {
-      // Optimistically update UI
-      setChallenges(prev => prev.map(challenge => 
-        challenge.id === challengeId 
-          ? { ...challenge, completed: !currentStatus } 
-          : challenge
-      ));
-      
-      // Update in database
-      await updateChallengeStatus(challengeId, !currentStatus);
-      
-      if (!currentStatus) {
-        // If completing a challenge
-        toast.success('Challenge completed! 🎉');
-        onChallengeComplete();
-      }
-    } catch (error) {
-      // Revert on error
-      setChallenges(prev => prev.map(challenge => 
-        challenge.id === challengeId 
-          ? { ...challenge, completed: currentStatus } 
-          : challenge
-      ));
-      toast.error('Failed to update challenge');
-    }
-  };
+  }, [userId, onChallengeComplete]);
   
   const getChallengeIcon = (type: string) => {
     switch (type) {
@@ -179,15 +162,15 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
                     </div>
                     <div className="flex items-center">
                       {challenge.completed && (
-                        <div className="animate-fade-in text-xs text-green-600 font-medium mr-2">
-                          Completed!
+                        <div className="animate-fade-in text-xs text-green-600 font-medium mr-2 flex items-center gap-1">
+                          <Check className="h-3 w-3" /> Completed
                         </div>
                       )}
-                      <Checkbox
-                        checked={challenge.completed}
-                        onCheckedChange={() => handleToggleChallenge(challenge.id, challenge.completed)}
-                        className={`${pulseOnHover()} ${challenge.completed ? 'data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500' : ''}`}
-                      />
+                      <div className={`h-5 w-5 flex items-center justify-center rounded-full ${
+                        challenge.completed ? 'bg-green-500 text-white' : 'bg-gray-200'
+                      }`}>
+                        {challenge.completed && <Check className="h-3 w-3" />}
+                      </div>
                     </div>
                   </div>
                 </AnimateOnScroll>

@@ -452,9 +452,15 @@ export const getDailyChallenges = async (userId: string, forceRefresh = false): 
       throw error;
     }
     
-    // If challenges exist for today and we're not forcing a refresh, return them
+    // If challenges exist for today and we're not forcing a refresh, update their completion status
     if (existingChallenges && existingChallenges.length > 0 && !forceRefresh) {
-      return existingChallenges.map(challenge => ({
+      // Get user stats to automatically update challenge completion
+      const userStats = await getUserStats(userId);
+      
+      // Update challenge completion status based on user stats
+      const updatedChallenges = await updateChallengeCompletionStatus(existingChallenges, userStats, userId);
+      
+      return updatedChallenges.map(challenge => ({
         id: challenge.id,
         challengeType: challenge.challenge_type,
         description: challenge.description,
@@ -506,7 +512,10 @@ export const getDailyChallenges = async (userId: string, forceRefresh = false): 
       throw fetchError;
     }
     
-    return (newChallenges || []).map(challenge => ({
+    // Immediately check if any challenges should be marked as completed
+    const updatedChallenges = await updateChallengeCompletionStatus(newChallenges || [], userStats, userId);
+    
+    return updatedChallenges.map(challenge => ({
       id: challenge.id,
       challengeType: challenge.challenge_type,
       description: challenge.description,
@@ -539,18 +548,95 @@ export const getDailyChallenges = async (userId: string, forceRefresh = false): 
 };
 
 /**
- * Update challenge completion status
+ * Automatically update challenge completion status based on user stats
  */
-export const updateChallengeStatus = async (challengeId: string, completed: boolean) => {
-  const { error } = await supabase
-    .from('daily_challenges')
-    .update({ completed })
-    .eq('id', challengeId);
+const updateChallengeCompletionStatus = async (
+  challenges: any[], 
+  userStats: UserStats, 
+  userId: string
+): Promise<any[]> => {
+  const updatedChallenges = [...challenges];
+  let madeChanges = false;
+  
+  // Get performance data for today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const { data: todaysPerformance } = await supabase
+    .from('cognitive_performance')
+    .select('*')
+    .eq('user_id', userId)
+    .gte('date', today.toISOString())
+    .order('date', { ascending: false });
+  
+  const gamesPlayedToday = todaysPerformance?.length || 0;
+  
+  // For each challenge, check if it should be automatically completed
+  for (const challenge of updatedChallenges) {
+    if (challenge.completed) continue; // Skip if already completed
     
-  if (error) {
-    console.error("Error updating challenge status:", error);
-    throw error;
+    let shouldComplete = false;
+    
+    switch (challenge.challenge_type) {
+      case 'memory':
+        // Complete memory challenge if they played a memory game with good score
+        shouldComplete = userStats.memoryScore >= 80 && userStats.lastPlayed 
+          ? new Date(userStats.lastPlayed).toDateString() === new Date().toDateString() 
+          : false;
+        break;
+        
+      case 'focus':
+        // Complete focus challenge if they played a focus game today
+        shouldComplete = userStats.focusScore >= 75 && userStats.lastPlayed 
+          ? new Date(userStats.lastPlayed).toDateString() === new Date().toDateString() 
+          : false;
+        break;
+        
+      case 'speed':
+        // Complete speed challenge if they played a speed game today
+        shouldComplete = userStats.speedScore >= 70 && userStats.lastPlayed 
+          ? new Date(userStats.lastPlayed).toDateString() === new Date().toDateString() 
+          : false;
+        break;
+        
+      case 'mixed':
+      case 'balanced':
+        // Complete mixed/balanced challenge if they played any game today
+        shouldComplete = userStats.lastPlayed 
+          ? new Date(userStats.lastPlayed).toDateString() === new Date().toDateString() 
+          : false;
+        break;
+        
+      case 'streak':
+        // Complete streak challenge if they have a streak of at least 2 days
+        shouldComplete = userStats.streak >= 2;
+        break;
+        
+      case 'achievement':
+        // Complete achievement challenge if they played 3+ games today
+        shouldComplete = gamesPlayedToday >= 3;
+        break;
+        
+      default:
+        // Default case - mark as completed if they played any game today
+        shouldComplete = userStats.lastPlayed 
+          ? new Date(userStats.lastPlayed).toDateString() === new Date().toDateString() 
+          : false;
+    }
+    
+    if (shouldComplete && !challenge.completed) {
+      challenge.completed = true;
+      madeChanges = true;
+      
+      // Update in database
+      await supabase
+        .from('daily_challenges')
+        .update({ completed: true })
+        .eq('id', challenge.id);
+    }
   }
+  
+  return updatedChallenges;
 };
 
 /**
