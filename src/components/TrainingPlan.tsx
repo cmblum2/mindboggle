@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import AnimateOnScroll from '@/components/AnimateOnScroll';
 import { fadeIn, fadeInRight, pulseOnHover, glowOnHover } from '@/lib/animate';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 
 interface TrainingPlanProps {
@@ -16,6 +16,34 @@ interface TrainingPlanProps {
   speedScore: number;
   isLoading: boolean;
 }
+
+// Color mapping constants - defined outside component to avoid recreation
+const AREA_COLORS = {
+  memory: {
+    bg: 'bg-brain-purple/10',
+    text: 'text-brain-purple',
+    border: 'border-brain-purple/20',
+    glow: 'brain-purple'
+  },
+  focus: {
+    bg: 'bg-brain-teal/10',
+    text: 'text-brain-teal',
+    border: 'border-brain-teal/20',
+    glow: 'brain-teal'
+  },
+  speed: {
+    bg: 'bg-brain-coral/10',
+    text: 'text-brain-coral',
+    border: 'border-brain-coral/20',
+    glow: 'brain-coral'
+  },
+  advanced: {
+    bg: 'bg-gray-100',
+    text: 'text-gray-700',
+    border: 'border-gray-200',
+    glow: 'gray-400'
+  }
+};
 
 const TrainingPlan = ({ 
   memoryScore, 
@@ -27,94 +55,66 @@ const TrainingPlan = ({
   const { user } = useAuth();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   
-  // Determine recommended training areas based on scores
-  const getRecommendedPlan = () => {
-    // Determine the weakest area
+  // Memoize the plan calculation to avoid recalculating on every render
+  const plan = useMemo(() => {
+    // Find weakest area
+    const scores = {
+      memory: memoryScore,
+      focus: focusScore,
+      speed: speedScore
+    };
+    
+    // Determine weakest and strongest areas in one pass
     let weakestArea = 'memory';
     let weakestScore = memoryScore;
-    
-    if (focusScore < weakestScore) {
-      weakestArea = 'focus';
-      weakestScore = focusScore;
-    }
-    
-    if (speedScore < weakestScore) {
-      weakestArea = 'speed';
-      weakestScore = speedScore;
-    }
-    
-    // Determine the strongest area
     let strongestArea = 'memory';
     let strongestScore = memoryScore;
     
-    if (focusScore > strongestScore) {
-      strongestArea = 'focus';
-      strongestScore = focusScore;
+    // Single loop to find both min and max
+    for (const [area, score] of Object.entries(scores)) {
+      if (score < weakestScore) {
+        weakestArea = area;
+        weakestScore = score;
+      }
+      if (score > strongestScore) {
+        strongestArea = area;
+        strongestScore = score;
+      }
     }
     
-    if (speedScore > strongestScore) {
-      strongestArea = 'speed';
-      strongestScore = speedScore;
-    }
+    // Map game IDs and recommendations
+    const areaGameMappings = {
+      memory: { gameId: 'memory-match', name: 'Memory Training', recommendation: 'Recommended: Memory Match, Word Recall' },
+      focus: { gameId: 'number-sequence', name: 'Focus Improvement', recommendation: 'Recommended: Number Sequence, Pattern Recognition' },
+      speed: { gameId: 'reaction-test', name: 'Speed Enhancement', recommendation: 'Recommended: Reaction Test, Mental Math' }
+    };
     
-    // Create a personalized plan based on scores
-    const plan = [
+    // Build the plan items
+    const planItems = [
+      // Weakest area recommendation
       {
         area: weakestArea,
-        name: weakestArea === 'memory' 
-          ? 'Memory Training' 
-          : weakestArea === 'focus' 
-          ? 'Focus Improvement' 
-          : 'Speed Enhancement',
-        recommendation: weakestArea === 'memory'
-          ? 'Recommended: Memory Match, Word Recall'
-          : weakestArea === 'focus'
-          ? 'Recommended: Number Sequence, Pattern Recognition'
-          : 'Recommended: Reaction Test, Mental Math',
-        gameId: weakestArea === 'memory'
-          ? 'memory-match'
-          : weakestArea === 'focus'
-          ? 'number-sequence'
-          : 'reaction-test',
-        score: weakestArea === 'memory'
-          ? memoryScore
-          : weakestArea === 'focus'
-          ? focusScore
-          : speedScore,
-        color: weakestArea === 'memory'
-          ? 'bg-brain-purple/10 text-brain-purple'
-          : weakestArea === 'focus'
-          ? 'bg-brain-teal/10 text-brain-teal'
-          : 'bg-brain-coral/10 text-brain-coral',
-        borderColor: weakestArea === 'memory'
-          ? 'border-brain-purple/20'
-          : weakestArea === 'focus'
-          ? 'border-brain-teal/20'
-          : 'border-brain-coral/20'
+        name: areaGameMappings[weakestArea as keyof typeof areaGameMappings].name,
+        recommendation: areaGameMappings[weakestArea as keyof typeof areaGameMappings].recommendation,
+        gameId: areaGameMappings[weakestArea as keyof typeof areaGameMappings].gameId,
+        score: scores[weakestArea as keyof typeof scores],
+        color: AREA_COLORS[weakestArea as keyof typeof AREA_COLORS].bg + ' ' + AREA_COLORS[weakestArea as keyof typeof AREA_COLORS].text,
+        borderColor: AREA_COLORS[weakestArea as keyof typeof AREA_COLORS].border
       },
+      // Advanced practice recommendation
       {
         area: 'advanced',
         name: 'Advanced Practice',
         recommendation: 'Challenge yourself with exercises that build on your strengths',
-        gameId: strongestArea === 'memory'
-          ? 'word-recall'
-          : strongestArea === 'focus'
-          ? 'number-sequence'
-          : 'reaction-test',
-        score: strongestArea === 'memory'
-          ? memoryScore
-          : strongestArea === 'focus'
-          ? focusScore
-          : speedScore,
-        color: 'bg-gray-100 text-gray-700',
-        borderColor: 'border-gray-200'
+        gameId: areaGameMappings[strongestArea as keyof typeof areaGameMappings].gameId,
+        score: scores[strongestArea as keyof typeof scores],
+        color: AREA_COLORS.advanced.bg + ' ' + AREA_COLORS.advanced.text,
+        borderColor: AREA_COLORS.advanced.border
       }
     ];
     
-    return plan;
-  };
-  
-  const plan = getRecommendedPlan();
+    return planItems;
+  }, [memoryScore, focusScore, speedScore]);
   
   const handleStartTraining = (gameId: string, areaName: string) => {
     if (!user) {
@@ -123,6 +123,13 @@ const TrainingPlan = ({
     }
     
     navigate(`/game/${gameId}`);
+  };
+  
+  // Helper to determine the glow color based on area
+  const getGlowColor = (area: string) => {
+    if (area === 'memory') return 'brain-purple';
+    if (area === 'focus') return 'brain-teal';
+    return 'brain-coral';
   };
   
   return (
@@ -168,7 +175,7 @@ const TrainingPlan = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={`justify-between w-full ${pulseOnHover()} ${glowOnHover(item.area === 'memory' ? 'brain-purple' : item.area === 'focus' ? 'brain-teal' : 'brain-coral')}`}
+                      className={`justify-between w-full ${pulseOnHover()} ${glowOnHover(getGlowColor(item.area))}`}
                       onClick={() => handleStartTraining(item.gameId, item.name)}
                     >
                       <span>Start Training</span>
