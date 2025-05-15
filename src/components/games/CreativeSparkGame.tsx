@@ -13,6 +13,7 @@ interface Challenge {
   prompt: string;
   options?: string[];
   correctAnswers?: string[];
+  presetAnswers?: string[]; // For divergent/reversal questions
   timeLimit: number;
   points: number;
 }
@@ -38,7 +39,15 @@ const getCreativeChallenges = (difficulty: 'easy' | 'medium' | 'hard'): Challeng
     {
       id: 'divergent1',
       type: 'divergent',
-      prompt: 'Name an uncommon use for a paperclip',
+      prompt: 'Select an uncommon use for a paperclip',
+      presetAnswers: [
+        'Bookmark', 
+        'Earring', 
+        'Lock pick', 
+        'Cable organizer',
+        'Zipper pull',
+        'Reset button tool'
+      ],
       timeLimit: difficulty === 'easy' ? 25 : difficulty === 'medium' ? 20 : 15,
       points: 10
     },
@@ -64,13 +73,29 @@ const getCreativeChallenges = (difficulty: 'easy' | 'medium' | 'hard'): Challeng
       id: 'reversal1',
       type: 'reversal',
       prompt: 'What would happen if gravity reversed for 5 seconds every hour?',
+      presetAnswers: [
+        'Objects would float to the ceiling briefly',
+        'People would need to secure items regularly',
+        'Buildings would need special anchors',
+        'New sports would be invented',
+        'Special gravity-proof containers would be needed',
+        'We would have scheduled "gravity breaks"'
+      ],
       timeLimit: difficulty === 'easy' ? 30 : difficulty === 'medium' ? 25 : 20,
       points: 15
     },
     {
       id: 'divergent2',
       type: 'divergent',
-      prompt: 'List an innovative way to reuse plastic bottles',
+      prompt: 'Select an innovative way to reuse plastic bottles',
+      presetAnswers: [
+        'Vertical garden planters',
+        'Solar water purifier',
+        'Homemade sprinkler system',
+        'Bird feeder',
+        'Desk organizer',
+        'Lamp shade'
+      ],
       timeLimit: difficulty === 'easy' ? 25 : difficulty === 'medium' ? 20 : 15,
       points: 10
     },
@@ -92,6 +117,14 @@ const getCreativeChallenges = (difficulty: 'easy' | 'medium' | 'hard'): Challeng
         id: 'reversal2',
         type: 'reversal',
         prompt: 'What if humans had photosynthetic skin?',
+        presetAnswers: [
+          'People would spend more time outdoors',
+          'Clothing styles would prioritize skin exposure',
+          'Food consumption would decrease',
+          'Sleep patterns would align with sunlight hours',
+          'Green-tinted skin would become attractive',
+          'Architecture would include more windows and skylights'
+        ],
         timeLimit: difficulty === 'medium' ? 25 : 20,
         points: 15
       }
@@ -113,7 +146,15 @@ const getCreativeChallenges = (difficulty: 'easy' | 'medium' | 'hard'): Challeng
       {
         id: 'divergent3',
         type: 'divergent',
-        prompt: 'Invent a new holiday and describe its main tradition',
+        prompt: 'Select a new holiday idea and its main tradition',
+        presetAnswers: [
+          'Digital Detox Day - Everyone disconnects from technology',
+          'Gratitude Day - Write thank you notes to strangers',
+          'Skill Swap Day - Teach others something you know',
+          'Global Fusion Day - Everyone cooks a dish from another culture',
+          'Pay It Forward Day - Do random acts of kindness',
+          'Innovation Day - Create solutions to everyday problems'
+        ],
         timeLimit: 25,
         points: 20
       }
@@ -132,7 +173,6 @@ const CreativeSparkGame: React.FC<CreativeSparkGameProps> = ({
   const [currentChallengeIndex, setCurrentChallengeIndex] = useState<number>(0);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
-  const [userAnswer, setUserAnswer] = useState<string>('');
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{
     show: boolean;
@@ -183,7 +223,6 @@ const CreativeSparkGame: React.FC<CreativeSparkGameProps> = ({
   useEffect(() => {
     if (challenges.length > 0 && currentChallengeIndex < challenges.length) {
       setTimeRemaining(challenges[currentChallengeIndex].timeLimit);
-      setUserAnswer('');
       setSelectedOption(null);
       setFeedback({ show: false, isCorrect: false, message: '' });
     }
@@ -197,11 +236,7 @@ const CreativeSparkGame: React.FC<CreativeSparkGameProps> = ({
       setTimeRemaining(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          if (challenges[currentChallengeIndex].type === 'divergent' || challenges[currentChallengeIndex].type === 'reversal') {
-            handleDivergentSubmit(); // Auto-submit for open-ended questions
-          } else {
-            handleTimeout(); // Time's up for multiple choice
-          }
+          handleTimeout();
           return 0;
         }
         return prev - 1;
@@ -219,69 +254,6 @@ const CreativeSparkGame: React.FC<CreativeSparkGameProps> = ({
       message: "Time's up! Let's try another challenge." 
     });
     setStreak(0);
-  };
-
-  // Creativity tip rotation
-  useEffect(() => {
-    const tipInterval = setInterval(() => {
-      setCurrentTipIndex(prev => (prev + 1) % creativityTips.length);
-    }, 8000);
-    
-    return () => clearInterval(tipInterval);
-  }, [creativityTips.length]);
-
-  // Handle multiple choice selection
-  const handleOptionSelect = (option: string) => {
-    const currentChallenge = challenges[currentChallengeIndex];
-    setSelectedOption(option);
-    
-    const isCorrect = currentChallenge.correctAnswers?.includes(option) || false;
-    
-    // Calculate points based on time remaining and difficulty
-    let earnedPoints = currentChallenge.points;
-    if (isCorrect) {
-      // Time bonus
-      const timeBonus = Math.floor(timeRemaining / 2);
-      earnedPoints += timeBonus;
-      
-      // Streak bonus
-      const newStreak = streak + 1;
-      setStreak(newStreak);
-      
-      if (newStreak >= 3) {
-        const streakBonus = Math.floor(newStreak / 3) * 5;
-        earnedPoints += streakBonus;
-        setShowBonus({show: true, amount: streakBonus});
-        setTimeout(() => setShowBonus({show: false, amount: 0}), 1500);
-      }
-      
-      if (newStreak >= 3) {
-        setShowStreak(true);
-        setTimeout(() => setShowStreak(false), 1500);
-      }
-      
-      setFeedback({ 
-        show: true, 
-        isCorrect: true, 
-        message: `Great thinking! +${earnedPoints} points` 
-      });
-    } else {
-      setStreak(0);
-      setFeedback({ 
-        show: true, 
-        isCorrect: false, 
-        message: "That's not quite it. Creative thinking is about exploring multiple possibilities." 
-      });
-    }
-    
-    // Update score
-    if (isCorrect) {
-      setScore(prev => {
-        const newScore = prev + earnedPoints;
-        onScoreChange(newScore);
-        return newScore;
-      });
-    }
     
     // Move to next challenge after delay
     setTimeout(() => {
@@ -293,20 +265,31 @@ const CreativeSparkGame: React.FC<CreativeSparkGameProps> = ({
     }, 2000);
   };
 
-  // Handle open-ended submissions
-  const handleDivergentSubmit = () => {
-    if (userAnswer.trim() === '' && timeRemaining > 0) {
-      return; // Don't submit empty answers unless time is up
-    }
+  // Creativity tip rotation
+  useEffect(() => {
+    const tipInterval = setInterval(() => {
+      setCurrentTipIndex(prev => (prev + 1) % creativityTips.length);
+    }, 8000);
     
+    return () => clearInterval(tipInterval);
+  }, [creativityTips.length]);
+
+  // Handle option selection for all challenge types
+  const handleOptionSelect = (option: string) => {
     const currentChallenge = challenges[currentChallengeIndex];
+    setSelectedOption(option);
     
-    // For open-ended questions, we give points for any non-empty answer
-    // In a real game, you might want AI to evaluate the creativity of responses
+    // For association and visual challenges, check if answer is correct
+    // For divergent and reversal, all answers are considered "correct" but with varying creativity scores
+    const isAssociationOrVisual = currentChallenge.type === 'association' || currentChallenge.type === 'visual';
+    const isCorrect = isAssociationOrVisual 
+      ? (currentChallenge.correctAnswers?.includes(option) || false)
+      : true;
+    
+    // Calculate points based on time remaining and difficulty
     let earnedPoints = currentChallenge.points;
-    let isCreativeEnough = userAnswer.trim().length >= 10;
     
-    if (isCreativeEnough) {
+    if (isCorrect) {
       // Time bonus
       const timeBonus = Math.floor(timeRemaining / 2);
       earnedPoints += timeBonus;
@@ -327,11 +310,43 @@ const CreativeSparkGame: React.FC<CreativeSparkGameProps> = ({
         setTimeout(() => setShowStreak(false), 1500);
       }
       
-      setFeedback({ 
-        show: true, 
-        isCorrect: true, 
-        message: `Creative response! +${earnedPoints} points` 
-      });
+      // For divergent and reversal challenges, randomize the "creativeness" score a bit
+      // to simulate the feeling of some answers being more creative than others
+      if (!isAssociationOrVisual) {
+        // Randomize creativity score but make it feel deliberate
+        const randomFactor = Math.floor(Math.random() * 3); // 0, 1, or 2
+        
+        if (randomFactor === 0) {
+          // Less creative answer
+          earnedPoints = Math.floor(earnedPoints * 0.7);
+          setFeedback({ 
+            show: true, 
+            isCorrect: true, 
+            message: `Good answer! +${earnedPoints} points` 
+          });
+        } else if (randomFactor === 1) {
+          // Standard creative answer
+          setFeedback({ 
+            show: true, 
+            isCorrect: true, 
+            message: `Creative response! +${earnedPoints} points` 
+          });
+        } else {
+          // Highly creative answer
+          earnedPoints = Math.floor(earnedPoints * 1.3);
+          setFeedback({ 
+            show: true, 
+            isCorrect: true, 
+            message: `Brilliant thinking! +${earnedPoints} points` 
+          });
+        }
+      } else {
+        setFeedback({ 
+          show: true, 
+          isCorrect: true, 
+          message: `Great thinking! +${earnedPoints} points` 
+        });
+      }
       
       // Update score
       setScore(prev => {
@@ -339,27 +354,12 @@ const CreativeSparkGame: React.FC<CreativeSparkGameProps> = ({
         onScoreChange(newScore);
         return newScore;
       });
-    } else if (userAnswer.trim() !== '') {
-      // Simple answer, less points
-      setFeedback({ 
-        show: true, 
-        isCorrect: true, 
-        message: `Good try! Try adding more detail next time. +${Math.floor(earnedPoints/2)} points` 
-      });
-      
-      // Update score with half points
-      setScore(prev => {
-        const newScore = prev + Math.floor(earnedPoints/2);
-        onScoreChange(newScore);
-        return newScore;
-      });
     } else {
-      // No answer
       setStreak(0);
       setFeedback({ 
         show: true, 
         isCorrect: false, 
-        message: "Time's up! Let's try another creative challenge." 
+        message: "That's not quite it. Creative thinking is about exploring multiple possibilities." 
       });
     }
     
@@ -421,7 +421,7 @@ const CreativeSparkGame: React.FC<CreativeSparkGameProps> = ({
             transition={{ duration: 0.3 }}
             className="mb-6"
           >
-            <h3 className="text-xl font-bold mb-2">{currentChallenge.prompt}</h3>
+            <h3 className="text-xl font-bold mb-4">{currentChallenge.prompt}</h3>
             
             {/* Different UI based on challenge type */}
             <AnimatePresence mode="wait">
@@ -444,52 +444,60 @@ const CreativeSparkGame: React.FC<CreativeSparkGameProps> = ({
                     )}
                   </div>
                   <p className="font-medium">{feedback.message}</p>
-                </motion.div>
-              ) : currentChallenge.type === 'divergent' || currentChallenge.type === 'reversal' ? (
-                <motion.div
-                  key="open-ended"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex flex-col gap-3"
-                >
-                  <textarea
-                    value={userAnswer}
-                    onChange={(e) => setUserAnswer(e.target.value)}
-                    placeholder="Type your creative answer here..."
-                    className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 dark:bg-gray-800"
-                    rows={3}
-                  />
-                  <Button
-                    onClick={handleDivergentSubmit}
-                    disabled={feedback.show}
-                    className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white"
-                  >
-                    Submit Answer
-                  </Button>
+                  {!feedback.isCorrect && currentChallenge.type === 'association' && (
+                    <p className="mt-2 text-sm">
+                      The correct answer was: {currentChallenge.correctAnswers?.[0]}
+                    </p>
+                  )}
                 </motion.div>
               ) : (
                 <motion.div
-                  key="multiple-choice"
+                  key="options"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+                  className={cn(
+                    "grid gap-3",
+                    currentChallenge.type === 'association' || currentChallenge.type === 'visual' 
+                      ? "grid-cols-1 sm:grid-cols-2" 
+                      : "grid-cols-1"
+                  )}
                 >
-                  {currentChallenge.options?.map((option) => (
-                    <Button
-                      key={option}
-                      variant="outline"
-                      onClick={() => handleOptionSelect(option)}
-                      disabled={feedback.show}
-                      className={cn(
-                        "h-auto py-3 text-left justify-start",
-                        selectedOption === option ? "border-2 border-purple-500 dark:border-purple-400" : "",
-                      )}
-                    >
-                      {option}
-                    </Button>
-                  ))}
+                  {/* Display options based on challenge type */}
+                  {(currentChallenge.type === 'association' || currentChallenge.type === 'visual') && 
+                    currentChallenge.options?.map((option) => (
+                      <Button
+                        key={option}
+                        variant="outline"
+                        onClick={() => handleOptionSelect(option)}
+                        disabled={feedback.show}
+                        className={cn(
+                          "h-auto py-3 text-left justify-start",
+                          selectedOption === option ? "border-2 border-purple-500 dark:border-purple-400" : "",
+                        )}
+                      >
+                        {option}
+                      </Button>
+                    ))
+                  }
+                  
+                  {/* For divergent and reversal thinking, show preset answers */}
+                  {(currentChallenge.type === 'divergent' || currentChallenge.type === 'reversal') && 
+                    currentChallenge.presetAnswers?.map((answer) => (
+                      <Button
+                        key={answer}
+                        variant="outline"
+                        onClick={() => handleOptionSelect(answer)}
+                        disabled={feedback.show}
+                        className={cn(
+                          "h-auto py-3 text-left justify-start",
+                          selectedOption === answer ? "border-2 border-purple-500 dark:border-purple-400" : "",
+                        )}
+                      >
+                        {answer}
+                      </Button>
+                    ))
+                  }
                 </motion.div>
               )}
             </AnimatePresence>
