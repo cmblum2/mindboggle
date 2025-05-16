@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   
   const { toast } = useToast();
   const { login, signup } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +53,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       });
       resetForm();
       onClose();
+      navigate('/dashboard');
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
@@ -90,10 +93,11 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       await signup(email, password, name);
       toast({
         title: "Account created!",
-        description: "Welcome to MindBoggle. Please check your email for verification.",
+        description: "Welcome to MindBoggle! You're now signed in.",
       });
       resetForm();
       onClose();
+      navigate('/dashboard');
     } catch (error: any) {
       console.error("Signup error:", error);
       toast({
