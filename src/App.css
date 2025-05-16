@@ -1,3 +1,4 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -51,6 +52,7 @@
 h1, h2, h3, h4, h5, h6 {
   line-height: 1.2;
   margin-bottom: 0.5em;
+  overflow: visible;
 }
 
 /* Ensure proper line height for text gradient spans */
@@ -61,7 +63,9 @@ h1, h2, h3, h4, h5, h6 {
   background-image: linear-gradient(to right, #7B61FF, #41BFB3);
   display: inline-block;
   line-height: 1.4;
-  padding-bottom: 0.1em;
+  padding-bottom: 0.2em;
+  overflow: visible;
+  margin-bottom: 0.2em;
 }
 
 /* Page transition effects */
@@ -125,6 +129,9 @@ html {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-image: linear-gradient(to right, #7B61FF, #41BFB3);
+  padding-bottom: 0.3em;
+  margin-bottom: 0.3em;
+  overflow: visible;
 }
 
 /* Glass card effect */

@@ -101,7 +101,7 @@ const Index = ({ navBarExtension }: IndexProps) => {
       
       <main className="flex-1">
         {/* Hero Section with enhanced visuals */}
-        <section className="relative py-16 md:py-28 overflow-hidden">
+        <section className="relative py-16 md:py-28 overflow-visible">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-20 right-0 w-96 h-96 bg-brain-purple/5 rounded-full blur-3xl"></div>
             <div className="absolute bottom-10 left-0 w-80 h-80 bg-brain-teal/5 rounded-full blur-3xl"></div>
@@ -109,16 +109,20 @@ const Index = ({ navBarExtension }: IndexProps) => {
           
           <div className="container px-4 md:px-6 relative z-10">
             <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
-              <AnimateOnScroll animation={fadeInLeft(100)} className="space-y-6">
+              <AnimateOnScroll animation={fadeInLeft(100)} className="space-y-6 overflow-visible">
                 <div className="inline-block px-3 py-1 rounded-full bg-gradient-to-r from-brain-purple/10 to-brain-teal/10 text-sm font-medium text-brain-purple mb-2">
                   Train your brain daily
                 </div>
-                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none mb-6">
-                  Train Your Brain.
-                  <span className="block mt-3 bg-gradient-to-r from-brain-purple to-brain-teal bg-clip-text text-transparent"> 
-                    Stay Sharp.
-                  </span>
-                </h1>
+                <div className="overflow-visible mb-10">
+                  <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none mb-6 overflow-visible">
+                    Train Your Brain.
+                    <div className="block h-auto mt-3 overflow-visible">
+                      <span className="text-gradient overflow-visible"> 
+                        Stay Sharp.
+                      </span>
+                    </div>
+                  </h1>
+                </div>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl leading-relaxed">
                   MindBoggle offers personalized brain exercises with AI-powered feedback to help maintain cognitive health.
                 </p>
