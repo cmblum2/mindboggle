@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { 
   Dialog, 
@@ -100,11 +101,12 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       await signup(email, password, name);
       toast({
         title: "Account created!",
-        description: "Welcome to MindBoggle! You're now signed in.",
+        description: "Your account has been created successfully. Please log in to continue.",
+        duration: 5000,
       });
       resetForm();
-      onClose();
-      navigate('/dashboard');
+      // Switch to the login tab after successful signup
+      setActiveTab('login');
     } catch (error: any) {
       console.error("Signup error:", error);
       if (error.message?.includes('Email address already in use')) {

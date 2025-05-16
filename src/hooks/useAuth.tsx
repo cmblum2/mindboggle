@@ -83,12 +83,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Signup function - Updated to automatically log in the user after signup
+  // Signup function - Modified to NOT automatically log in after signup
   const signup = async (email: string, password: string, name: string) => {
     setIsLoading(true);
     try {
-      // Sign up with auto-confirm option
-      const { error, data } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -98,17 +97,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       
       if (error) throw error;
-
-      // With email confirmation disabled, the user should be automatically logged in
-      // If for some reason they're not, we'll explicitly sign them in
-      if (!data.session) {
-        const { error: loginError } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-        
-        if (loginError) throw loginError;
-      }
+      
+      // We no longer attempt to sign in after signup
       
     } catch (error) {
       console.error('Signup error:', error);
@@ -118,7 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Logout function - Fixed to properly handle session cleanup
+  // Logout function
   const logout = async () => {
     setIsLoading(true);
     try {
