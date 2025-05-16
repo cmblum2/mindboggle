@@ -15,6 +15,13 @@ const StatsOverview = ({ stats, isLoading }: StatsOverviewProps) => {
     return date.toLocaleDateString();
   };
   
+  // Function to properly format the streak with appropriate suffix
+  const formatStreak = (streak: number) => {
+    if (streak === 0) return 'New User';
+    if (streak === 1) return '1 day';
+    return `${streak} days`;
+  };
+  
   return (
     <div className="grid gap-4 md:grid-cols-4 mb-8">
       <StatCard 
@@ -26,7 +33,7 @@ const StatsOverview = ({ stats, isLoading }: StatsOverviewProps) => {
       
       <StatCard 
         title="Day Streak" 
-        value={stats.streak.toString()} 
+        value={formatStreak(stats.streak)} 
         icon={<FlameKindling className="h-8 w-8 mb-2 text-brain-coral animate-pulse-soft" />}
         isLoading={isLoading}
       />

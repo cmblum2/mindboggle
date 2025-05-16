@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Progress } from '@/components/ui/progress';
 import AnimateOnScroll from '@/components/AnimateOnScroll';
 import { fadeIn, fadeInLeft, fadeInRight, scaleIn } from '@/lib/animate';
+import { getUserStats } from '@/lib/dashboard';
 
 interface IndexProps {
   navBarExtension?: React.ReactNode;
@@ -23,11 +23,13 @@ const Index = ({ navBarExtension }: IndexProps) => {
     completed: 0,
     total: 3
   });
+  const [userStreak, setUserStreak] = useState<number>(0);
   
-  // Fetch user's daily progress
+  // Fetch user's daily progress and streak
   useEffect(() => {
     if (user) {
       fetchDailyProgress();
+      fetchUserStreak();
     }
   }, [user]);
   
@@ -57,6 +59,19 @@ const Index = ({ navBarExtension }: IndexProps) => {
     } catch (err) {
       console.error("Error fetching daily progress:", err);
       // Keep default values on error
+    }
+  };
+
+  // Fetch user streak from stats
+  const fetchUserStreak = async () => {
+    if (!user) return;
+    
+    try {
+      const stats = await getUserStats(user.id);
+      setUserStreak(stats.streak);
+    } catch (err) {
+      console.error("Error fetching user streak:", err);
+      setUserStreak(0); // Default to 0 on error
     }
   };
 
@@ -90,6 +105,13 @@ const Index = ({ navBarExtension }: IndexProps) => {
     (dailyProgress.completed / dailyProgress.total) * 100, 
     100 // Limit to maximum of 100%
   );
+  
+  // Format streak display
+  const formatStreak = (streak: number) => {
+    if (streak === 0) return 'Just started';
+    if (streak === 1) return '1 day';
+    return `${streak} days`;
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -187,7 +209,7 @@ const Index = ({ navBarExtension }: IndexProps) => {
                             ></div>
                           </div>
                           <div className="mt-3 text-xs text-muted-foreground flex justify-between items-center">
-                            <span>{user.name ? `${user.name}'s streak: 3 days` : 'Your streak: 3 days'}</span>
+                            <span>{user.name ? `${user.name}'s streak: ${formatStreak(userStreak)}` : `Your streak: ${formatStreak(userStreak)}`}</span>
                             <Sparkles className="h-3 w-3 text-amber-400" />
                           </div>
                         </div>
