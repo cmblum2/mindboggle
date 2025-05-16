@@ -87,17 +87,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signup = async (email: string, password: string, name: string) => {
     setIsLoading(true);
     try {
+      // Sign up with auto-confirm option
       const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { name }
+          data: { name },
+          emailRedirectTo: window.location.origin
         }
       });
       
       if (error) throw error;
 
-      // With email confirmation disabled, the user will be automatically logged in
+      // With email confirmation disabled, the user should be automatically logged in
       // If for some reason they're not, we'll explicitly sign them in
       if (!data.session) {
         const { error: loginError } = await supabase.auth.signInWithPassword({

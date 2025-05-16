@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { 
   Dialog, 
@@ -56,11 +55,19 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       navigate('/dashboard');
     } catch (error: any) {
       console.error("Login error:", error);
-      toast({
-        title: "Login failed",
-        description: error?.message || "Please check your credentials and try again.",
-        variant: "destructive",
-      });
+      if (error.message?.includes('not confirmed')) {
+        toast({
+          title: "Email not confirmed",
+          description: "Please check your email and confirm your account before logging in.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Login failed",
+          description: error?.message || "Please check your credentials and try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -100,11 +107,19 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       navigate('/dashboard');
     } catch (error: any) {
       console.error("Signup error:", error);
-      toast({
-        title: "Signup failed",
-        description: error?.message || "Please try again with a different email.",
-        variant: "destructive",
-      });
+      if (error.message?.includes('Email address already in use')) {
+        toast({
+          title: "Email already in use",
+          description: "This email is already registered. Try logging in instead.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Signup failed",
+          description: error?.message || "Please try again with a different email.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
