@@ -103,6 +103,51 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Text gradient effect */
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(to right, #7B61FF, #41BFB3);
+}
+
+/* Glass card effect */
+.glass-card {
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+/* Soft hover glow effect */
+.hover-glow:hover {
+  box-shadow: 0 0 15px rgba(123, 97, 255, 0.5);
+}
+
+/* Enhanced button effects */
+.button-glow {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.button-glow::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(123, 97, 255, 0), rgba(123, 97, 255, 0.3), rgba(123, 97, 255, 0));
+  z-index: -1;
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.button-glow:hover::after {
+  transform: translateX(100%);
+}
+
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -111,4 +156,14 @@ html {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Enhanced card animations */
+.brain-card {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.brain-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.15);
 }

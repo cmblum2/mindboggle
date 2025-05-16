@@ -2,12 +2,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Brain, GamepadIcon, Star } from 'lucide-react';
+import { Brain, GamepadIcon, Star, Sparkles, ChevronRight, Lightbulb } from 'lucide-react';
 import NavBar from '@/components/NavBar';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Progress } from '@/components/ui/progress';
+import AnimateOnScroll from '@/components/AnimateOnScroll';
+import { fadeIn, fadeInLeft, fadeInRight, scaleIn } from '@/lib/animate';
 
 interface IndexProps {
   navBarExtension?: React.ReactNode;
@@ -98,81 +100,108 @@ const Index = ({ navBarExtension }: IndexProps) => {
       />
       
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="py-12 md:py-24">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
-              <div className="space-y-4">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-serif">
+        {/* Hero Section with enhanced visuals */}
+        <section className="relative py-16 md:py-28 overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-20 right-0 w-96 h-96 bg-brain-purple/5 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-10 left-0 w-80 h-80 bg-brain-teal/5 rounded-full blur-3xl"></div>
+          </div>
+          
+          <div className="container px-4 md:px-6 relative z-10">
+            <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
+              <AnimateOnScroll animation={fadeInLeft(100)} className="space-y-6">
+                <div className="inline-block px-3 py-1 rounded-full bg-gradient-to-r from-brain-purple/10 to-brain-teal/10 text-sm font-medium text-brain-purple mb-2">
+                  Train your brain daily
+                </div>
+                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
                   Train Your Brain.
-                  <span className="text-gradient"> Stay Sharp.</span>
+                  <span className="block mt-1 bg-gradient-to-r from-brain-purple to-brain-teal bg-clip-text text-transparent"> 
+                    Stay Sharp.
+                  </span>
                 </h1>
-                <p className="max-w-[600px] text-muted-foreground md:text-xl">
+                <p className="max-w-[600px] text-muted-foreground md:text-xl leading-relaxed">
                   MindBoggle offers personalized brain exercises with AI-powered feedback to help maintain cognitive health.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <Button
-                    className="bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white px-8"
+                    className="bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white px-8 group relative overflow-hidden shadow-lg transition-all"
                     size="lg"
                     onClick={() => handleButtonClick('/dashboard')}
                   >
-                    Get Started
+                    <span className="relative z-10 flex items-center">
+                      Get Started 
+                      <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </span>
+                    <span className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
                   </Button>
                   <Button
                     variant="outline"
                     size="lg"
                     onClick={() => handleButtonClick('/games')}
+                    className="border-brain-teal/30 hover:border-brain-teal hover:bg-brain-teal/10 transition-all group"
                   >
-                    Explore Games
+                    <span className="flex items-center">
+                      Explore Games
+                      <GamepadIcon className="ml-2 h-4 w-4 transition-transform group-hover:rotate-12" />
+                    </span>
                   </Button>
                 </div>
-              </div>
-              <div className="flex items-center justify-center">
+              </AnimateOnScroll>
+
+              <AnimateOnScroll animation={fadeInRight(300)} className="flex items-center justify-center">
                 <div className="relative">
-                  <div className="absolute -top-8 -left-8 w-40 h-40 bg-brain-purple/20 rounded-full blur-2xl animate-pulse-soft" />
-                  <div className="absolute -bottom-8 -right-8 w-40 h-40 bg-brain-teal/20 rounded-full blur-2xl animate-pulse-soft" />
+                  <div className="absolute -top-8 -left-8 w-40 h-40 bg-brain-purple/20 rounded-full blur-2xl animate-pulse-soft"></div>
+                  <div className="absolute -bottom-8 -right-8 w-40 h-40 bg-brain-teal/20 rounded-full blur-2xl animate-pulse-soft"></div>
                   {user ? (
-                    <div className="relative z-10 bg-card p-6 rounded-xl shadow-xl border border-brain-teal/10 animate-float">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="flex items-center space-x-2 bg-brain-purple/10 p-3 rounded-lg dark:bg-brain-purple/20">
-                          <Brain className="h-8 w-8 text-brain-purple" />
+                    <div className="relative z-10 bg-card p-8 rounded-xl shadow-xl border border-brain-teal/20 backdrop-blur-sm animate-float">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex items-center space-x-3 bg-brain-purple/10 p-4 rounded-lg dark:bg-brain-purple/20 transition-all hover:bg-brain-purple/20 cursor-pointer">
+                          <Brain className="h-8 w-8 text-amber-500" />
                           <div>
                             <div className="font-medium">Memory</div>
                             <div className="text-xs text-muted-foreground">Build recall</div>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2 bg-brain-teal/10 p-3 rounded-lg dark:bg-brain-teal/20">
+                        <div className="flex items-center space-x-3 bg-brain-teal/10 p-4 rounded-lg dark:bg-brain-teal/20 transition-all hover:bg-brain-teal/20 cursor-pointer">
                           <GamepadIcon className="h-8 w-8 text-brain-teal" />
                           <div>
                             <div className="font-medium">Focus</div>
                             <div className="text-xs text-muted-foreground">Sharpen attention</div>
                           </div>
                         </div>
-                        <div className="col-span-2 bg-muted p-3 rounded-lg">
-                          <div className="text-sm font-medium mb-1">Today's Progress</div>
+                        <div className="col-span-2 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/10 shadow-inner">
+                          <div className="flex justify-between items-center mb-2">
+                            <div className="text-sm font-medium">Today's Progress</div>
+                            <div className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
+                              {dailyProgress.completed}/{dailyProgress.total}
+                            </div>
+                          </div>
                           <div className="w-full bg-muted-foreground/20 rounded-full h-2 overflow-hidden">
                             <div 
-                              className="h-2 rounded-full bg-gradient-to-r from-brain-purple to-brain-teal" 
+                              className="h-2 rounded-full bg-gradient-to-r from-brain-purple to-brain-teal animate-pulse-soft"
                               style={{ width: `${progressPercentage}%` }}
                             ></div>
                           </div>
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            {user.name ? `${user.name}'s progress: ` : ''}
-                            {dailyProgress.completed}/{dailyProgress.total} brain games complete
+                          <div className="mt-3 text-xs text-muted-foreground flex justify-between items-center">
+                            <span>{user.name ? `${user.name}'s streak: 3 days` : 'Your streak: 3 days'}</span>
+                            <Sparkles className="h-3 w-3 text-amber-400" />
                           </div>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="relative z-10 bg-card p-6 rounded-xl shadow-xl border border-brain-teal/10 animate-float">
-                      <div className="flex flex-col items-center text-center p-4 space-y-3">
-                        <Brain className="h-12 w-12 text-brain-purple mb-2" />
-                        <h3 className="text-lg font-medium">Train Your Brain</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Sign in to track your progress and access personalized brain training
+                    <div className="relative z-10 bg-card p-8 rounded-xl shadow-xl border border-brain-teal/20 backdrop-blur-sm animate-float">
+                      <div className="flex flex-col items-center text-center space-y-4">
+                        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-brain-purple/20 to-brain-teal/20 flex items-center justify-center">
+                          <Brain className="h-8 w-8 text-brain-purple" />
+                        </div>
+                        <h3 className="text-xl font-semibold">Train Your Brain</h3>
+                        <div className="h-px w-16 bg-gradient-to-r from-brain-purple/30 to-brain-teal/30"></div>
+                        <p className="text-sm text-muted-foreground max-w-xs">
+                          Sign in to track your progress and access personalized brain training exercises designed for your cognitive needs.
                         </p>
                         <Button 
-                          className="w-full bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white mt-2"
+                          className="w-full bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white mt-2 group"
                           onClick={() => {
                             const getStartedButton = document.querySelector('[data-get-started]') as HTMLButtonElement;
                             if (getStartedButton) {
@@ -180,55 +209,83 @@ const Index = ({ navBarExtension }: IndexProps) => {
                             }
                           }}
                         >
-                          Sign In
+                          <span className="flex items-center">
+                            Sign In
+                            <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                          </span>
                         </Button>
                       </div>
                     </div>
                   )}
                 </div>
-              </div>
+              </AnimateOnScroll>
             </div>
           </div>
         </section>
         
-        {/* Features Section */}
-        <section className="bg-muted py-12 md:py-24">
-          <div className="container px-4 md:px-6">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold">How It Works</h2>
-              <p className="text-muted-foreground mt-2">Train your brain through engaging games and personalized feedback</p>
-            </div>
+        {/* Features Section with enhanced visuals */}
+        <section className="bg-gradient-to-b from-muted/50 to-muted py-16 md:py-24 overflow-hidden relative">
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-0 left-1/4 w-64 h-64 bg-brain-teal/5 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-brain-purple/5 rounded-full blur-3xl"></div>
+          </div>
+          
+          <div className="container px-4 md:px-6 relative z-10">
+            <AnimateOnScroll animation={fadeIn(100)} className="text-center mb-12">
+              <div className="inline-block px-3 py-1 rounded-full bg-gradient-to-r from-brain-purple/10 to-brain-teal/10 text-sm font-medium text-brain-purple mb-2">
+                How It Works
+              </div>
+              <h2 className="text-3xl font-bold mb-3">Train your brain through engaging games</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Improve cognitive abilities with scientifically-backed exercises and personalized feedback
+              </p>
+            </AnimateOnScroll>
             
             <div className="grid gap-8 md:grid-cols-3">
-              <div className="brain-card">
-                <div className="w-12 h-12 bg-brain-purple/10 rounded-full flex items-center justify-center mb-4 dark:bg-brain-purple/20">
-                  <GamepadIcon className="h-6 w-6 text-brain-purple" />
+              <AnimateOnScroll animation={fadeIn(100)} className="group">
+                <div className="brain-card bg-card p-6 rounded-xl border border-brain-purple/20 hover:border-brain-purple/40 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-brain-purple/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="relative z-10">
+                    <div className="w-12 h-12 bg-brain-purple/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <GamepadIcon className="h-6 w-6 text-brain-purple" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-3">Play Games</h3>
+                    <p className="text-muted-foreground">
+                      Engage in fun cognitive exercises designed to target different areas of brain function and improve your mental agility.
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold mb-2">Play Games</h3>
-                <p className="text-muted-foreground">
-                  Engage in fun cognitive exercises designed to target different areas of brain function
-                </p>
-              </div>
+              </AnimateOnScroll>
               
-              <div className="brain-card">
-                <div className="w-12 h-12 bg-brain-teal/10 rounded-full flex items-center justify-center mb-4 dark:bg-brain-teal/20">
-                  <Brain className="h-6 w-6 text-brain-teal" />
+              <AnimateOnScroll animation={fadeIn(200)} className="group">
+                <div className="brain-card bg-card p-6 rounded-xl border border-brain-teal/20 hover:border-brain-teal/40 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-brain-teal/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="relative z-10">
+                    <div className="w-12 h-12 bg-brain-teal/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <Lightbulb className="h-6 w-6 text-brain-teal" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-3">Get AI Feedback</h3>
+                    <p className="text-muted-foreground">
+                      Receive personalized analysis and recommendations based on your performance to optimize your cognitive training.
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold mb-2">Get AI Feedback</h3>
-                <p className="text-muted-foreground">
-                  Receive personalized analysis and recommendations based on your performance
-                </p>
-              </div>
+              </AnimateOnScroll>
               
-              <div className="brain-card">
-                <div className="w-12 h-12 bg-brain-coral/10 rounded-full flex items-center justify-center mb-4 dark:bg-brain-coral/20">
-                  <Star className="h-6 w-6 text-brain-coral" />
+              <AnimateOnScroll animation={fadeIn(300)} className="group">
+                <div className="brain-card bg-card p-6 rounded-xl border border-brain-coral/20 hover:border-brain-coral/40 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-brain-coral/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="relative z-10">
+                    <div className="w-12 h-12 bg-brain-coral/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <Star className="h-6 w-6 text-brain-coral" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-3">Track Progress</h3>
+                    <p className="text-muted-foreground">
+                      Monitor your cognitive improvements over time with detailed analytics and visualize your journey to better brain health.
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold mb-2">Track Progress</h3>
-                <p className="text-muted-foreground">
-                  Monitor your cognitive improvements over time with detailed analytics
-                </p>
-              </div>
+              </AnimateOnScroll>
             </div>
           </div>
         </section>
