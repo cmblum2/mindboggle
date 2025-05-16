@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -18,6 +19,8 @@ const gameData: GameType[] = [
     difficulty: 'Medium',
     duration: '5-10 min',
     progress: 0,
+    brainTarget: 'Hippocampus & Temporal Lobe',
+    cognitiveHealth: 'Strengthens neural pathways involved in memory formation and recall. Regular practice can increase hippocampal volume and improve both short and long-term memory consolidation.'
   },
   {
     id: 'number-sequence',
@@ -28,6 +31,8 @@ const gameData: GameType[] = [
     difficulty: 'Hard',
     duration: '10-15 min',
     progress: 0,
+    brainTarget: 'Prefrontal Cortex & Anterior Cingulate',
+    cognitiveHealth: 'Strengthens neural pathways that filter distractions and maintain attention on relevant information. Enhances executive control networks that coordinate complex cognitive tasks.'
   },
   {
     id: 'word-recall',
@@ -38,6 +43,8 @@ const gameData: GameType[] = [
     difficulty: 'Medium',
     duration: '10-20 min',
     progress: 0,
+    brainTarget: 'Prefrontal Cortex & Parietal Lobe',
+    cognitiveHealth: 'Enhances connections between language and logic centers of the brain. Improves reasoning abilities and executive function while building cognitive flexibility.'
   },
   {
     id: 'reaction-test',
@@ -48,6 +55,8 @@ const gameData: GameType[] = [
     difficulty: 'Easy',
     duration: '5-10 min',
     progress: 0,
+    brainTarget: 'Default Mode Network & Right Hemisphere',
+    cognitiveHealth: 'Activates connections between typically unrelated brain regions, promoting divergent thinking and cognitive flexibility. Builds adaptive neural pathways that support innovation.'
   }
 ];
 
