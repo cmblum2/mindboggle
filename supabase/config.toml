@@ -54,3 +54,10 @@ enabled = false
 
 [auth.external.azuread]
 enabled = false
+
+[auth]
+# Disabling email confirmation
+site_url = "https://mind-boggle.me"
+additional_redirect_urls = ["https://mind-boggle.me"]
+disable_signup = false
+confirm_emails = false
