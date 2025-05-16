@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrainCircuit, Gauge, Lightbulb } from 'lucide-react';
+import { Brain, Gauge, Lightbulb } from 'lucide-react';
 import CognitiveAreaCard from './CognitiveAreaCard';
 
 interface CognitiveAreasProps {
@@ -23,7 +23,7 @@ const CognitiveAreas = ({
         <CognitiveAreaCard 
           title="Memory" 
           score={memoryScore} 
-          icon={<BrainCircuit className="h-4 w-4 text-brain-purple" />}
+          icon={<Brain className="h-4 w-4 text-amber-500" />}
           description="Based on memory games performance"
           isLoading={isLoading}
         />

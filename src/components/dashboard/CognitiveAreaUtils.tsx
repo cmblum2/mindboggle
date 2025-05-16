@@ -40,7 +40,7 @@ export const getStrongestArea = (stats: UserStats): string => {
 export const getCategoryIcon = (category: string) => {
   switch (category) {
     case 'memory':
-      return <Brain className="h-5 w-5 text-brain-purple" />;
+      return <Brain className="h-5 w-5 text-amber-500" />; // Changed to amber (dark yellow) color
     case 'focus':
       return <Lightbulb className="h-5 w-5 text-brain-teal" />;
     case 'speed':
@@ -55,7 +55,7 @@ export const getCategoryIcon = (category: string) => {
 export const getCategoryColor = (category: string) => {
   switch (category) {
     case 'memory':
-      return 'bg-brain-purple/10 dark:bg-brain-purple/20';
+      return 'bg-amber-500/10 dark:bg-amber-500/20'; // Updated to amber (dark yellow)
     case 'focus':
       return 'bg-brain-teal/10 dark:bg-brain-teal/20';
     case 'speed':

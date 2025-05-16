@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -46,7 +45,7 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
   const getGameIcon = () => {
     switch (game.icon) {
       case 'memory':
-        return <Brain className="h-5 w-5 text-brain-purple" />;
+        return <Brain className="h-5 w-5 text-amber-500" />;
       case 'puzzle':
         return <Puzzle className="h-5 w-5 text-brain-blue" />;
       case 'speed':
@@ -88,13 +87,13 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
   const getCardBackgroundColor = () => {
     switch (game.icon) {
       case 'memory':
-        return 'rgba(123, 97, 255, 0.1)'; // Purple for memory
+        return 'rgba(245, 158, 11, 0.1)';
       case 'puzzle':
-        return 'rgba(65, 137, 230, 0.1)'; // Blue for puzzle
+        return 'rgba(65, 137, 230, 0.1)';
       case 'speed':
-        return 'rgba(65, 191, 179, 0.1)'; // Teal for speed
+        return 'rgba(65, 191, 179, 0.1)';
       case 'focus':
-        return 'rgba(255, 107, 107, 0.1)'; // Coral for focus
+        return 'rgba(255, 107, 107, 0.1)';
       default:
         return 'rgba(123, 97, 255, 0.1)';
     }
