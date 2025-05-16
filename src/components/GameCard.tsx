@@ -11,7 +11,8 @@ import {
   Zap,
   Trophy,
   Brain,
-  Puzzle
+  Puzzle,
+  Info
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useState } from 'react';
@@ -80,19 +81,22 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
   };
   
   const getBrainTargetIcon = () => {
-    switch (game.category.toLowerCase()) {
+    // Use the Info icon consistently for all brain detail buttons
+    return <Info className="h-4 w-4 mr-1 text-brain-purple" />;
+  };
+  
+  const getCardBackgroundColor = () => {
+    switch (game.icon) {
       case 'memory':
-        return <Brain className="h-4 w-4 mr-1 text-brain-purple" />;
+        return 'rgba(123, 97, 255, 0.1)'; // Purple for memory
+      case 'puzzle':
+        return 'rgba(65, 137, 230, 0.1)'; // Blue for puzzle
       case 'speed':
-        return <Zap className="h-4 w-4 mr-1 text-brain-teal" />;
+        return 'rgba(65, 191, 179, 0.1)'; // Teal for speed
       case 'focus':
-        return <Lightbulb className="h-4 w-4 mr-1 text-brain-coral" />;
-      case 'logic':
-        return <Puzzle className="h-4 w-4 mr-1 text-brain-blue" />;
-      case 'balanced':
-        return <Star className="h-4 w-4 mr-1 text-brain-yellow" />;
+        return 'rgba(255, 107, 107, 0.1)'; // Coral for focus
       default:
-        return <Brain className="h-4 w-4 mr-1 text-brain-purple" />;
+        return 'rgba(123, 97, 255, 0.1)';
     }
   };
   
@@ -100,9 +104,7 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
     <div className="game-container relative">
       <div className="flex items-start justify-between mb-3">
         <div className="p-2 rounded-full bg-opacity-10" 
-          style={{ backgroundColor: game.icon === 'memory' ? 'rgba(123, 97, 255, 0.1)' : 
-                              game.icon === 'speed' ? 'rgba(65, 191, 179, 0.1)' : 
-                              'rgba(255, 107, 107, 0.1)' }}>
+          style={{ backgroundColor: getCardBackgroundColor() }}>
           {getGameIcon()}
         </div>
         <div className={`text-xs font-medium px-2.5 py-1 rounded-full ${getDifficultyColor()}`}>

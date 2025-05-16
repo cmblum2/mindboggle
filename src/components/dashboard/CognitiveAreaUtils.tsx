@@ -60,6 +60,8 @@ export const getCategoryColor = (category: string) => {
       return 'bg-brain-teal/10 dark:bg-brain-teal/20';
     case 'speed':
       return 'bg-brain-coral/10 dark:bg-brain-coral/20';
+    case 'logic':
+      return 'bg-brain-blue/10 dark:bg-brain-blue/20';
     default:
       return 'bg-brain-purple/10 dark:bg-brain-purple/20';
   }
