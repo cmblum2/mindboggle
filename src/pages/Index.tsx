@@ -113,9 +113,9 @@ const Index = ({ navBarExtension }: IndexProps) => {
                 <div className="inline-block px-3 py-1 rounded-full bg-gradient-to-r from-brain-purple/10 to-brain-teal/10 text-sm font-medium text-brain-purple mb-2">
                   Train your brain daily
                 </div>
-                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
+                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none mb-6">
                   Train Your Brain.
-                  <span className="block mt-1 bg-gradient-to-r from-brain-purple to-brain-teal bg-clip-text text-transparent"> 
+                  <span className="block mt-3 bg-gradient-to-r from-brain-purple to-brain-teal bg-clip-text text-transparent"> 
                     Stay Sharp.
                   </span>
                 </h1>
