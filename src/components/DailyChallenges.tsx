@@ -1,7 +1,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, BrainCircuit, Lightbulb, Zap, Trophy, Award, Star, Check } from 'lucide-react';
+import { CalendarDays, Brain, Lightbulb, Zap, Trophy, Award, Star, Check, Puzzle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from "sonner";
 import { DailyChallenge, getDailyChallenges } from '@/lib/dashboard';
@@ -149,7 +149,7 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
     switch (type) {
       case 'memory':
         return <div className="h-6 w-6 rounded-full bg-brain-purple/20 flex items-center justify-center">
-          <BrainCircuit className="h-4 w-4 text-brain-purple" />
+          <Brain className="h-4 w-4 text-brain-purple" />
         </div>;
       case 'focus':
         return <div className="h-6 w-6 rounded-full bg-brain-teal/20 flex items-center justify-center">
@@ -158,6 +158,10 @@ const DailyChallenges = ({ userId, onChallengeComplete }: DailyChallengesProps) 
       case 'speed':
         return <div className="h-6 w-6 rounded-full bg-brain-coral/20 flex items-center justify-center">
           <Zap className="h-4 w-4 text-brain-coral" />
+        </div>;
+      case 'logic':
+        return <div className="h-6 w-6 rounded-full bg-brain-blue/20 flex items-center justify-center">
+          <Puzzle className="h-4 w-4 text-brain-blue" />
         </div>;
       case 'balanced':
       case 'mixed':

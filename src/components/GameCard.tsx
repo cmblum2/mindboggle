@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -8,7 +9,9 @@ import {
   Lightbulb,
   Star,
   Zap,
-  Trophy
+  Trophy,
+  Brain,
+  Puzzle
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useState } from 'react';
@@ -23,7 +26,7 @@ export interface Game {
   difficulty: 'Easy' | 'Medium' | 'Hard';
   duration: string;
   progress: number;
-  icon: 'memory' | 'speed' | 'focus';
+  icon: 'memory' | 'speed' | 'focus' | 'puzzle';
   brainTarget?: string;
   cognitiveHealth?: string;
 }
@@ -42,7 +45,9 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
   const getGameIcon = () => {
     switch (game.icon) {
       case 'memory':
-        return <BrainCircuit className="h-5 w-5 text-brain-purple" />;
+        return <Brain className="h-5 w-5 text-brain-purple" />;
+      case 'puzzle':
+        return <Puzzle className="h-5 w-5 text-brain-blue" />;
       case 'speed':
         return <Zap className="h-5 w-5 text-brain-teal" />;
       case 'focus':
@@ -77,15 +82,17 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
   const getBrainTargetIcon = () => {
     switch (game.category.toLowerCase()) {
       case 'memory':
-        return <BrainCircuit className="h-4 w-4 mr-1 text-brain-purple" />;
+        return <Brain className="h-4 w-4 mr-1 text-brain-purple" />;
       case 'speed':
         return <Zap className="h-4 w-4 mr-1 text-brain-teal" />;
       case 'focus':
         return <Lightbulb className="h-4 w-4 mr-1 text-brain-coral" />;
+      case 'logic':
+        return <Puzzle className="h-4 w-4 mr-1 text-brain-blue" />;
       case 'balanced':
         return <Star className="h-4 w-4 mr-1 text-brain-yellow" />;
       default:
-        return <BrainCircuit className="h-4 w-4 mr-1 text-brain-purple" />;
+        return <Brain className="h-4 w-4 mr-1 text-brain-purple" />;
     }
   };
   

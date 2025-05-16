@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
 import { Button } from '@/components/ui/button';
 import GameCard, { Game as GameType } from '@/components/GameCard';
-import { Brain, Zap, Brain as BrainIcon, Puzzle, Sparkles } from 'lucide-react';
+import { Brain, Zap, Puzzle, Sparkles } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import AuthModal from '@/components/AuthModal';
 
@@ -34,7 +34,7 @@ const gameData: GameType[] = [
     id: 'word-recall',
     name: 'Puzzle Solver',
     description: 'Challenge your logical thinking and word skills with engaging puzzles',
-    icon: 'memory',
+    icon: 'puzzle',
     category: 'Logic',
     difficulty: 'Medium',
     duration: '10-20 min',
