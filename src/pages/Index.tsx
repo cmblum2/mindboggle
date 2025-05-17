@@ -10,6 +10,8 @@ import { Progress } from '@/components/ui/progress';
 import AnimateOnScroll from '@/components/AnimateOnScroll';
 import { fadeIn, fadeInLeft, fadeInRight, scaleIn } from '@/lib/animate';
 import { getUserStats } from '@/lib/dashboard';
+import ParallaxBackground from '@/components/ParallaxBackground';
+import ParallaxElement from '@/components/ParallaxElement';
 
 interface IndexProps {
   navBarExtension?: React.ReactNode;
@@ -114,7 +116,10 @@ const Index = ({ navBarExtension }: IndexProps) => {
   };
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col overflow-hidden relative">
+      {/* Add ParallaxBackground here */}
+      <ParallaxBackground />
+      
       <NavBar 
         isLoggedIn={!!user}
         onLogout={logout}
@@ -122,28 +127,25 @@ const Index = ({ navBarExtension }: IndexProps) => {
       />
       
       <main className="flex-1">
-        {/* Hero Section with enhanced visuals */}
+        {/* Hero Section with enhanced parallax effects */}
         <section className="relative py-16 md:py-28 overflow-visible">
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-20 right-0 w-96 h-96 bg-brain-purple/5 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-10 left-0 w-80 h-80 bg-brain-teal/5 rounded-full blur-3xl"></div>
-          </div>
-          
           <div className="container px-4 md:px-6 relative z-10">
             <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
               <AnimateOnScroll animation={fadeInLeft(100)} className="space-y-6 overflow-visible">
-                <div className="inline-block px-3 py-1 rounded-full bg-gradient-to-r from-brain-purple/10 to-brain-teal/10 text-sm font-medium text-brain-purple mb-2">
+                <ParallaxElement speed={0.1} direction="up" className="inline-block px-3 py-1 rounded-full bg-gradient-to-r from-brain-purple/10 to-brain-teal/10 text-sm font-medium text-brain-purple mb-2">
                   Train your brain daily
-                </div>
+                </ParallaxElement>
                 <div className="overflow-visible mb-10">
-                  <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none mb-6 overflow-visible">
-                    Train Your Brain.
-                    <div className="block h-auto mt-3 overflow-visible">
-                      <span className="text-gradient overflow-visible"> 
-                        Stay Sharp.
-                      </span>
-                    </div>
-                  </h1>
+                  <ParallaxElement speed={0.08} direction="left">
+                    <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none mb-6 overflow-visible">
+                      Train Your Brain.
+                      <div className="block h-auto mt-3 overflow-visible">
+                        <span className="text-gradient overflow-visible"> 
+                          Stay Sharp.
+                        </span>
+                      </div>
+                    </h1>
+                  </ParallaxElement>
                 </div>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl leading-relaxed">
                   MindBoggle offers personalized brain exercises with AI-powered feedback to help maintain cognitive health.
@@ -175,7 +177,7 @@ const Index = ({ navBarExtension }: IndexProps) => {
               </AnimateOnScroll>
 
               <AnimateOnScroll animation={fadeInRight(300)} className="flex items-center justify-center">
-                <div className="relative">
+                <ParallaxElement speed={0.12} direction="down" className="relative">
                   <div className="absolute -top-8 -left-8 w-40 h-40 bg-brain-purple/20 rounded-full blur-2xl animate-pulse-soft"></div>
                   <div className="absolute -bottom-8 -right-8 w-40 h-40 bg-brain-teal/20 rounded-full blur-2xl animate-pulse-soft"></div>
                   {user ? (
@@ -243,24 +245,24 @@ const Index = ({ navBarExtension }: IndexProps) => {
                       </div>
                     </div>
                   )}
-                </div>
+                </ParallaxElement>
               </AnimateOnScroll>
             </div>
           </div>
         </section>
         
-        {/* Features Section with enhanced visuals */}
+        {/* Features Section with parallax enhancements */}
         <section className="bg-gradient-to-b from-muted/50 to-muted py-16 md:py-24 overflow-hidden relative">
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <ParallaxElement speed={0.07} direction="down" className="absolute inset-0 pointer-events-none overflow-hidden">
             <div className="absolute top-0 left-1/4 w-64 h-64 bg-brain-teal/5 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-brain-purple/5 rounded-full blur-3xl"></div>
-          </div>
+          </ParallaxElement>
           
           <div className="container px-4 md:px-6 relative z-10">
             <AnimateOnScroll animation={fadeIn(100)} className="text-center mb-12">
-              <div className="inline-block px-3 py-1 rounded-full bg-gradient-to-r from-brain-purple/10 to-brain-teal/10 text-sm font-medium text-brain-purple mb-2">
+              <ParallaxElement speed={0.1} direction="up" className="inline-block px-3 py-1 rounded-full bg-gradient-to-r from-brain-purple/10 to-brain-teal/10 text-sm font-medium text-brain-purple mb-2">
                 How It Works
-              </div>
+              </ParallaxElement>
               <h2 className="text-3xl font-bold mb-3">Train your brain through engaging games</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Improve cognitive abilities with scientifically-backed exercises and personalized feedback
@@ -269,48 +271,54 @@ const Index = ({ navBarExtension }: IndexProps) => {
             
             <div className="grid gap-8 md:grid-cols-3">
               <AnimateOnScroll animation={fadeIn(100)} className="group">
-                <div className="brain-card bg-card p-6 rounded-xl border border-brain-purple/20 hover:border-brain-purple/40 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-brain-purple/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <div className="relative z-10">
-                    <div className="w-12 h-12 bg-brain-purple/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <GamepadIcon className="h-6 w-6 text-brain-purple" />
+                <ParallaxElement speed={0.14} direction="up">
+                  <div className="brain-card bg-card p-6 rounded-xl border border-brain-purple/20 hover:border-brain-purple/40 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-brain-purple/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="relative z-10">
+                      <div className="w-12 h-12 bg-brain-purple/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <GamepadIcon className="h-6 w-6 text-brain-purple" />
+                      </div>
+                      <h3 className="text-xl font-bold mb-3">Play Games</h3>
+                      <p className="text-muted-foreground">
+                        Engage in fun cognitive exercises designed to target different areas of brain function and improve your mental agility.
+                      </p>
                     </div>
-                    <h3 className="text-xl font-bold mb-3">Play Games</h3>
-                    <p className="text-muted-foreground">
-                      Engage in fun cognitive exercises designed to target different areas of brain function and improve your mental agility.
-                    </p>
                   </div>
-                </div>
+                </ParallaxElement>
               </AnimateOnScroll>
               
               <AnimateOnScroll animation={fadeIn(200)} className="group">
-                <div className="brain-card bg-card p-6 rounded-xl border border-brain-teal/20 hover:border-brain-teal/40 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-brain-teal/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <div className="relative z-10">
-                    <div className="w-12 h-12 bg-brain-teal/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <Lightbulb className="h-6 w-6 text-brain-teal" />
+                <ParallaxElement speed={0.12} direction="up">
+                  <div className="brain-card bg-card p-6 rounded-xl border border-brain-teal/20 hover:border-brain-teal/40 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-brain-teal/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="relative z-10">
+                      <div className="w-12 h-12 bg-brain-teal/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <Lightbulb className="h-6 w-6 text-brain-teal" />
+                      </div>
+                      <h3 className="text-xl font-bold mb-3">Get AI Feedback</h3>
+                      <p className="text-muted-foreground">
+                        Receive personalized analysis and recommendations based on your performance to optimize your cognitive training.
+                      </p>
                     </div>
-                    <h3 className="text-xl font-bold mb-3">Get AI Feedback</h3>
-                    <p className="text-muted-foreground">
-                      Receive personalized analysis and recommendations based on your performance to optimize your cognitive training.
-                    </p>
                   </div>
-                </div>
+                </ParallaxElement>
               </AnimateOnScroll>
               
               <AnimateOnScroll animation={fadeIn(300)} className="group">
-                <div className="brain-card bg-card p-6 rounded-xl border border-brain-coral/20 hover:border-brain-coral/40 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-brain-coral/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <div className="relative z-10">
-                    <div className="w-12 h-12 bg-brain-coral/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <Star className="h-6 w-6 text-brain-coral" />
+                <ParallaxElement speed={0.10} direction="up">
+                  <div className="brain-card bg-card p-6 rounded-xl border border-brain-coral/20 hover:border-brain-coral/40 transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-brain-coral/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="relative z-10">
+                      <div className="w-12 h-12 bg-brain-coral/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <Star className="h-6 w-6 text-brain-coral" />
+                      </div>
+                      <h3 className="text-xl font-bold mb-3">Track Progress</h3>
+                      <p className="text-muted-foreground">
+                        Monitor your cognitive improvements over time with detailed analytics and visualize your journey to better brain health.
+                      </p>
                     </div>
-                    <h3 className="text-xl font-bold mb-3">Track Progress</h3>
-                    <p className="text-muted-foreground">
-                      Monitor your cognitive improvements over time with detailed analytics and visualize your journey to better brain health.
-                    </p>
                   </div>
-                </div>
+                </ParallaxElement>
               </AnimateOnScroll>
             </div>
           </div>
