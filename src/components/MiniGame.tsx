@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -9,6 +8,7 @@ import MemoryGame from './games/MemoryGame';
 import SequenceGame from './games/SequenceGame';
 import WordGame from './games/WordGame';
 import CreativeSparkGame from './games/CreativeSparkGame';
+import PatternRecognitionGame from './games/PatternRecognitionGame';
 import { saveGameResults } from '@/lib/dashboard';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -223,6 +223,14 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
       case 'word-recall':
         return (
           <WordGame
+            onScoreChange={handleScoreChange}
+            onGameEnd={handleGameEnd}
+            difficulty={getDifficulty()}
+          />
+        );
+      case 'pattern-recognition':
+        return (
+          <PatternRecognitionGame
             onScoreChange={handleScoreChange}
             onGameEnd={handleGameEnd}
             difficulty={getDifficulty()}
