@@ -40,6 +40,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const { id, email } = session.user;
           const name = session.user.user_metadata?.name || email?.split('@')[0] || '';
           setUser({ id, email, name });
+          
+          // Show toast when email is confirmed
+          if (event === 'SIGNED_IN' && window.localStorage.getItem('pendingEmailConfirmation') === 'true') {
+            window.localStorage.removeItem('pendingEmailConfirmation');
+            // Use setTimeout to ensure the toast system is initialized
+            setTimeout(() => {
+              const toast = require('@/hooks/use-toast').toast;
+              toast({
+                title: "Email confirmed!",
+                description: "Thanks for confirming your email address.",
+              });
+            }, 500);
+          }
         } else {
           setUser(null);
         }
@@ -98,7 +111,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (error) throw error;
       
-      // We no longer attempt to sign in after signup
+      // Set a flag in localStorage to indicate that we're waiting for email confirmation
+      window.localStorage.setItem('pendingEmailConfirmation', 'true');
       
     } catch (error) {
       console.error('Signup error:', error);

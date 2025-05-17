@@ -62,6 +62,12 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           description: "Please check your email and confirm your account before logging in.",
           variant: "destructive",
         });
+      } else if (error.message?.includes('Invalid login credentials')) {
+        toast({
+          title: "Login failed",
+          description: "The email or password you entered is incorrect. Please try again.",
+          variant: "destructive",
+        });
       } else {
         toast({
           title: "Login failed",
@@ -101,7 +107,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       await signup(email, password, name);
       toast({
         title: "Account created!",
-        description: "Your account has been created successfully. Please log in to continue.",
+        description: "An email was sent to your address. Please check your inbox to authenticate and log in with that email address.",
         duration: 5000,
       });
       resetForm();
