@@ -109,7 +109,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        // Supabase returns different error messages for different providers
+        // We want to standardize the "email already in use" error
+        if (error.message.includes('already registered')) {
+          throw new Error('Email address already in use');
+        }
+        throw error;
+      }
       
       // Set a flag in localStorage to indicate that we're waiting for email confirmation
       window.localStorage.setItem('pendingEmailConfirmation', 'true');

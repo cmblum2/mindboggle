@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { 
   Dialog, 
@@ -118,9 +117,11 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       if (error.message?.includes('Email address already in use')) {
         toast({
           title: "Email already in use",
-          description: "This email is already registered. Try logging in instead.",
+          description: "This email is already registered. Please use the login form instead.",
           variant: "destructive",
         });
+        // Switch to login tab to help the user
+        setActiveTab('login');
       } else {
         toast({
           title: "Signup failed",
