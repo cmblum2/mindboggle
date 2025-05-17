@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -34,6 +35,7 @@ interface GameState {
   timeLeft: number;
   isPlaying: boolean;
   showFeedback: boolean;
+  resultsSaved: boolean; // Added flag to track if results were saved
 }
 
 const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateChange }: MiniGameProps) => {
@@ -42,6 +44,7 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
     timeLeft: 60,
     isPlaying: false,
     showFeedback: false,
+    resultsSaved: false, // Initialize as false
   });
   
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
@@ -91,19 +94,21 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
       isPlaying: true,
       timeLeft: getGameDuration(),
       score: 0,
-      showFeedback: false
+      showFeedback: false,
+      resultsSaved: false, // Reset when starting a new game
     });
   };
   
   const handleGameEnd = async () => {
+    // First, stop the game
     setState(prev => ({
       ...prev,
       isPlaying: false,
       showFeedback: true
     }));
     
-    // Save game results to database if user is logged in
-    if (user) {
+    // Only save results if they haven't been saved yet for this game session
+    if (user && !state.resultsSaved) {
       try {
         // Calculate normalized scores based on game category
         let memoryScore = 0;
@@ -135,6 +140,13 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
         
         // Save results to database
         await saveGameResults(user.id, memoryScore, focusScore, speedScore);
+        
+        // Mark results as saved to prevent duplicate saving
+        setState(prev => ({
+          ...prev,
+          resultsSaved: true
+        }));
+        
         toast.success("Game progress saved!");
         
         // Signal that stats should be updated, but we won't navigate away
@@ -143,7 +155,7 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
         console.error("Error saving game results:", error);
         toast.error("Couldn't save your progress");
       }
-    } else {
+    } else if (!user) {
       // Still call onComplete to update UI as needed
       onComplete(state.score);
     }
