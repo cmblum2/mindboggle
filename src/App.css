@@ -190,30 +190,3 @@ html {
   transform: translateY(-5px);
   box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.15);
 }
-
-/* Parallax effect styles */
-.parallax-container {
-  overflow-x: hidden;
-  position: relative;
-  perspective: 8px;
-  perspective-origin: 0%;
-}
-
-.parallax-layer {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  transform-origin: 0 0;
-  will-change: transform;
-}
-
-@keyframes float-slow {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-.float-slow {
-  animation: float-slow 6s ease-in-out infinite;
-}
