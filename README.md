@@ -2,8 +2,7 @@
 
 ## Overview
 
-This is a modern web application built with a powerful frontend stack optimized for fast development and smooth user experiences.
-
+MindBoggle offers personalized brain exercises with AI-powered feedback to help maintain cognitive health.
 ## 🌐 Live Preview
 
 Check out the deployed version here: [Live Project](https://lovable.dev/projects/b1665c2f-b7f3-4a12-9845-f2b4e1740682)
