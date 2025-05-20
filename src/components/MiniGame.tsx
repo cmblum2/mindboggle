@@ -103,6 +103,11 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
   };
   
   const handleGameEnd = async () => {
+    // Skip if game is already ended and results saved
+    if (!state.isPlaying || state.resultsSaved) {
+      return;
+    }
+    
     // First, stop the game
     setState(prev => ({
       ...prev,
@@ -110,7 +115,7 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
       showFeedback: true
     }));
     
-    // Only save results if they haven't been saved yet for this game session
+    // Only save results if they haven't been saved yet for this game session and user is logged in
     if (user && !state.resultsSaved) {
       try {
         // Calculate normalized scores based on game category
@@ -366,8 +371,7 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
             <AlertDialogCancel>No, continue playing</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                // Call handleGameEnd to properly save progress and update stats
-                // regardless of how the user exits the game
+                // If game is active and results not yet saved, handle game end logic
                 if (state.isPlaying && !state.resultsSaved) {
                   handleGameEnd();
                 }
