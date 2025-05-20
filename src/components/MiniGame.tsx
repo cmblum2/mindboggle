@@ -10,6 +10,8 @@ import SequenceGame from './games/SequenceGame';
 import WordGame from './games/WordGame';
 import CreativeSparkGame from './games/CreativeSparkGame';
 import PatternRecognitionGame from './games/PatternRecognitionGame';
+import MentalMathGame from './games/MentalMathGame';
+import ReactionTestGame from './games/ReactionTestGame';
 import { saveGameResults } from '@/lib/dashboard';
 import { useAuth } from '@/hooks/useAuth';
 import {
