@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -35,7 +36,7 @@ interface GameState {
   timeLeft: number;
   isPlaying: boolean;
   showFeedback: boolean;
-  resultsSaved: boolean; // Added flag to track if results were saved
+  resultsSaved: boolean; // Flag to track if results were saved
 }
 
 const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateChange }: MiniGameProps) => {
@@ -44,7 +45,7 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
     timeLeft: 60,
     isPlaying: false,
     showFeedback: false,
-    resultsSaved: false, // Initialize as false
+    resultsSaved: false,
   });
   
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
@@ -147,6 +148,7 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
           resultsSaved: true
         }));
         
+        // Show toast only once per game session
         toast.success("Game progress saved!");
         
         // Signal that stats should be updated, but we won't navigate away
@@ -236,17 +238,24 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
             difficulty={getDifficulty()}
           />
         );
-      case 'daily-challenge':
-      case 'balanced-training':
-        // Fix: Use CreativeSparkGame instead of BalancedTraining as a fallback
+      case 'mental-math':
         return (
-          <CreativeSparkGame
+          <MentalMathGame
             onScoreChange={handleScoreChange}
             onGameEnd={handleGameEnd}
             difficulty={getDifficulty()}
           />
         );
       case 'reaction-test':
+        return (
+          <ReactionTestGame
+            onScoreChange={handleScoreChange}
+            onGameEnd={handleGameEnd}
+            difficulty={getDifficulty()}
+          />
+        );
+      case 'daily-challenge':
+      case 'balanced-training':
         return (
           <CreativeSparkGame
             onScoreChange={handleScoreChange}
@@ -355,6 +364,12 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
             <AlertDialogCancel>No, continue playing</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
+                // Call handleGameEnd to properly save progress and update stats
+                // regardless of how the user exits the game
+                if (state.isPlaying && !state.resultsSaved) {
+                  handleGameEnd();
+                }
+                // Then perform the actual exit action
                 exitAction();
                 setShowExitConfirmation(false);
               }}

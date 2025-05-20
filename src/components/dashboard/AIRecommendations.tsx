@@ -38,9 +38,26 @@ const AIRecommendations = ({ stats, recommendations, isLoading, refreshKey }: AI
       return;
     }
     
-    // Log which game is being navigated to for debugging
-    console.log(`Navigating to game: ${gameId}`);
-    navigate(`/game/${gameId}`);
+    // Verify gameId is valid before navigating
+    const validGameIds = [
+      'memory-match',
+      'number-sequence',
+      'word-recall',
+      'pattern-recognition',
+      'reaction-test',
+      'mental-math',
+      'daily-challenge'
+    ];
+    
+    // If the gameId is valid, navigate to it
+    if (validGameIds.includes(gameId)) {
+      console.log(`Navigating to game: ${gameId}`);
+      navigate(`/game/${gameId}`);
+    } else {
+      // For any other gameId, default to pattern-recognition game
+      console.log(`Invalid game ID: ${gameId}, redirecting to pattern-recognition`);
+      navigate('/game/pattern-recognition');
+    }
   };
 
   // Generate personalized AI message based on user stats

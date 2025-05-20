@@ -69,6 +69,8 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
     const shouldRefresh = location.state?.refreshStats || sessionStorage.getItem('refreshStats') === 'true';
     
     if (shouldRefresh) {
+      console.log("Dashboard detected refresh request from game exit");
+      
       // Clear the sessionStorage flag
       sessionStorage.removeItem('refreshStats');
       // Clear the location state
@@ -91,7 +93,9 @@ const Dashboard = ({ navBarExtension }: DashboardProps) => {
         setIsLoading(true);
         
         // Fetch user stats (now with all-time averages)
+        console.log("Fetching user stats for userId:", user.id);
         const userStats = await getUserStats(user.id);
+        console.log("Received user stats:", userStats);
         setStats(userStats);
         
         // Get game recommendations based on stats

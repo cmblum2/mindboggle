@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
@@ -292,6 +293,12 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
+                // If user is exiting from a game in progress, save the stats
+                if (isPlaying && user) {
+                  // Store the refresh flag in sessionStorage so dashboard can detect it
+                  sessionStorage.setItem('refreshStats', 'true');
+                }
+                
                 if (pendingNavigation) {
                   navigate(pendingNavigation);
                 }
