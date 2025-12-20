@@ -1,14 +1,11 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/NavBar';
-import { Button } from '@/components/ui/button';
 import GameCard, { Game as GameType } from '@/components/GameCard';
 import { Brain, Zap, Puzzle, Sparkles } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import AuthModal from '@/components/AuthModal';
 
-// Mock game data adapted to match the Game interface
 const gameData: GameType[] = [
   {
     id: 'memory-match',
@@ -65,12 +62,11 @@ interface GamesProps {
 }
 
 const Games = ({ navBarExtension }: GamesProps) => {
-  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <NavBar 
         isLoggedIn={!!user}
         onLogout={logout}
@@ -79,8 +75,12 @@ const Games = ({ navBarExtension }: GamesProps) => {
       
       <main className="flex-1 py-8">
         <div className="container px-4 md:px-6">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+          <div className="mb-10 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 dark:bg-primary/20 text-sm font-medium text-primary border border-primary/20 mb-4">
+              <Sparkles className="h-4 w-4" />
+              Challenge yourself
+            </div>
+            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl text-foreground">
               Brain Training Games
             </h1>
             <p className="mt-4 text-muted-foreground max-w-3xl mx-auto">
@@ -100,7 +100,6 @@ const Games = ({ navBarExtension }: GamesProps) => {
         </div>
       </main>
       
-      {/* Auth Modal */}
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}

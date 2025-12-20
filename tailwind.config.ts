@@ -63,15 +63,13 @@ export default {
 					border: 'hsl(var(--sidebar-border, var(--border)))',
 					ring: 'hsl(var(--sidebar-ring, var(--ring)))'
 				},
-				// MindBoggle custom colors
+				// MindBoggle custom colors using CSS variables for dark/light support
 				brain: {
-					purple: '#7B61FF',
-					teal: '#41BFB3',
-					coral: '#FF6B6B',
-					yellow: '#FFCD56',
-					blue: '#5271FF',
-					light: '#F2F7FF',
-					dark: '#2D3748'
+					purple: 'hsl(var(--brain-purple))',
+					teal: 'hsl(var(--brain-teal))',
+					coral: 'hsl(var(--brain-coral))',
+					yellow: 'hsl(var(--brain-yellow))',
+					blue: 'hsl(var(--brain-blue))',
 				}
 			},
 			borderRadius: {
