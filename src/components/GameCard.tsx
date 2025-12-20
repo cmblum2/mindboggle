@@ -2,17 +2,13 @@
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { 
-  BrainCircuit, 
   Hourglass, 
   Sparkles,
-  Timer,
-  Lightbulb,
-  Star,
   Zap,
-  Trophy,
   Brain,
   Puzzle,
-  Info
+  Info,
+  Star
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useState } from 'react';
@@ -49,30 +45,46 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   
   const getGameIcon = () => {
+    const iconClass = "h-5 w-5";
     switch (game.icon) {
       case 'memory':
-        return <Brain className="h-5 w-5 text-amber-500" />;
+        return <Brain className={`${iconClass} text-brain-yellow`} />;
       case 'puzzle':
-        return <Puzzle className="h-5 w-5 text-brain-blue" />;
+        return <Puzzle className={`${iconClass} text-brain-blue`} />;
       case 'speed':
-        return <Zap className="h-5 w-5 text-brain-teal" />;
+        return <Zap className={`${iconClass} text-brain-teal`} />;
       case 'focus':
-        return <Sparkles className="h-5 w-5 text-brain-coral" />;
+        return <Sparkles className={`${iconClass} text-brain-coral`} />;
       default:
-        return <Star className="h-5 w-5 text-brain-purple" />;
+        return <Star className={`${iconClass} text-primary`} />;
     }
   };
   
-  const getDifficultyColor = () => {
+  const getDifficultyBadge = () => {
     switch (game.difficulty) {
       case 'Easy':
-        return 'bg-green-100 text-green-800';
+        return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
       case 'Medium':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
       case 'Hard':
-        return 'bg-red-100 text-red-800';
+        return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground border-border';
+    }
+  };
+  
+  const getIconBgClass = () => {
+    switch (game.icon) {
+      case 'memory':
+        return 'bg-brain-yellow/10 dark:bg-brain-yellow/20';
+      case 'puzzle':
+        return 'bg-brain-blue/10 dark:bg-brain-blue/20';
+      case 'speed':
+        return 'bg-brain-teal/10 dark:bg-brain-teal/20';
+      case 'focus':
+        return 'bg-brain-coral/10 dark:bg-brain-coral/20';
+      default:
+        return 'bg-primary/10 dark:bg-primary/20';
     }
   };
   
@@ -80,20 +92,14 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
     if (requireLogin && !user) {
       setShowAuthModal(true);
     } else {
-      // Make sure we're using the correct ID to navigate
       navigate(`/game/${game.id}`);
     }
   };
   
-  // Get brain info based on game category
   const getBrainInfo = () => {
     const category = game.category.toLowerCase();
-    
-    // Use provided brain info if available, otherwise generate based on category
     const brainTarget = game.brainTarget || getBrainTarget(category);
     const cognitiveHealth = game.cognitiveHealth || getCognitiveHealth(category);
-    
-    // Get detailed information about brain regions
     const brainRegions = getBrainRegions(category);
     const neuroTransmitters = getNeuroTransmitters(category);
     const cognitiveSkills = getCognitiveSkills(category);
@@ -107,57 +113,39 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
     };
   };
   
-  const getCardBackgroundColor = () => {
-    switch (game.icon) {
-      case 'memory':
-        return 'rgba(245, 158, 11, 0.1)';
-      case 'puzzle':
-        return 'rgba(65, 137, 230, 0.1)';
-      case 'speed':
-        return 'rgba(65, 191, 179, 0.1)';
-      case 'focus':
-        return 'rgba(255, 107, 107, 0.1)';
-      default:
-        return 'rgba(123, 97, 255, 0.1)';
-    }
-  };
-  
-  // Get the brain info
   const brainInfo = getBrainInfo();
   
   return (
-    <div className="game-container relative">
-      <div className="flex items-start justify-between mb-3">
-        <div className="p-2 rounded-full bg-opacity-10" 
-          style={{ backgroundColor: getCardBackgroundColor() }}>
+    <div className="game-container group">
+      <div className="flex items-start justify-between mb-4">
+        <div className={`p-2.5 rounded-xl ${getIconBgClass()} transition-transform group-hover:scale-110`}>
           {getGameIcon()}
         </div>
-        <div className={`text-xs font-medium px-2.5 py-1 rounded-full ${getDifficultyColor()}`}>
+        <div className={`text-xs font-medium px-2.5 py-1 rounded-full border ${getDifficultyBadge()}`}>
           {game.difficulty}
         </div>
       </div>
       
-      <h3 className="text-lg font-semibold mb-1">{game.name}</h3>
-      <p className="text-sm text-muted-foreground mb-3">{game.description}</p>
+      <h3 className="text-lg font-semibold mb-2 text-foreground">{game.name}</h3>
+      <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{game.description}</p>
       
-      {/* Brain Information Accordion */}
-      <Accordion type="single" collapsible className="mb-3">
+      <Accordion type="single" collapsible className="mb-4">
         <AccordionItem value="brain-details" className="border-none">
-          <AccordionTrigger className="py-2 text-xs font-medium text-brain-purple hover:no-underline">
-            <span className="flex items-center">
-              <Info className="h-4 w-4 mr-1" />
+          <AccordionTrigger className="py-2 text-xs font-medium text-primary hover:no-underline hover:text-primary/80">
+            <span className="flex items-center gap-1.5">
+              <Info className="h-3.5 w-3.5" />
               Brain Science Details
             </span>
           </AccordionTrigger>
           <AccordionContent>
-            <div className="bg-brain-purple/5 p-3 rounded-md text-xs space-y-3">
+            <div className="bg-muted/50 dark:bg-muted/30 p-4 rounded-xl text-xs space-y-3 border border-border/50">
               <div>
-                <h4 className="font-medium text-brain-purple mb-1">Brain Target</h4>
+                <h4 className="font-medium text-primary mb-1">Brain Target</h4>
                 <p className="text-muted-foreground">{brainInfo.brainTarget}</p>
               </div>
               
               <div>
-                <h4 className="font-medium text-brain-purple mb-1">Brain Regions</h4>
+                <h4 className="font-medium text-primary mb-1">Brain Regions</h4>
                 <p className="text-muted-foreground">{brainInfo.brainRegions}</p>
               </div>
               
@@ -180,25 +168,25 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
         </AccordionItem>
       </Accordion>
       
-      <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-        <span>{game.category}</span>
-        <span className="flex items-center">
-          <Hourglass className="h-3 w-3 mr-1" /> {game.duration}
+      <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+        <span className="px-2 py-1 rounded-md bg-muted/50">{game.category}</span>
+        <span className="flex items-center gap-1.5">
+          <Hourglass className="h-3.5 w-3.5" /> {game.duration}
         </span>
       </div>
       
       {game.progress > 0 && (
         <div className="mb-4">
-          <div className="flex justify-between items-center text-xs mb-1">
-            <span className="font-medium">Progress</span>
-            <span>{game.progress}%</span>
+          <div className="flex justify-between items-center text-xs mb-2">
+            <span className="font-medium text-foreground">Progress</span>
+            <span className="text-muted-foreground">{game.progress}%</span>
           </div>
           <Progress value={game.progress} className="h-1.5" />
         </div>
       )}
       
       <Button 
-        className="w-full bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white"
+        className="w-full rounded-xl bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground shadow-md hover:shadow-lg transition-all"
         onClick={handleGameAction}
       >
         {requireLogin && !user ? "Sign In to Play" : game.progress > 0 ? "Continue" : "Start"} Game
@@ -212,7 +200,7 @@ const GameCard = ({ game, requireLogin = false }: GameCardProps) => {
   );
 };
 
-// Helper function to determine brain target based on category
+// Helper functions
 const getBrainTarget = (category: string) => {
   switch (category.toLowerCase()) {
     case 'memory':
@@ -231,7 +219,6 @@ const getBrainTarget = (category: string) => {
   }
 };
 
-// Enhanced brain region descriptions
 const getBrainRegions = (category: string) => {
   switch (category.toLowerCase()) {
     case 'memory':
@@ -250,7 +237,6 @@ const getBrainRegions = (category: string) => {
   }
 };
 
-// Information about neurotransmitters
 const getNeuroTransmitters = (category: string) => {
   switch (category.toLowerCase()) {
     case 'memory':
@@ -269,7 +255,6 @@ const getNeuroTransmitters = (category: string) => {
   }
 };
 
-// Detailed cognitive skills information
 const getCognitiveSkills = (category: string) => {
   switch (category.toLowerCase()) {
     case 'memory':
@@ -288,7 +273,6 @@ const getCognitiveSkills = (category: string) => {
   }
 };
 
-// Helper function to provide cognitive health benefits based on category
 const getCognitiveHealth = (category: string) => {
   switch (category.toLowerCase()) {
     case 'memory':
