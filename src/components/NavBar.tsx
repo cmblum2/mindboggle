@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import AuthModal from '@/components/AuthModal';
-import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface NavBarProps {
   isLoggedIn: boolean;
@@ -116,10 +115,6 @@ const NavBar = ({ isLoggedIn, onLogout, extension, overrideNavigation }: NavBarP
                   Get Started
                 </Button>
               )}
-              <div className="mt-4 flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Theme</span>
-                <ThemeToggle />
-              </div>
             </div>
           </SheetContent>
         </Sheet>
@@ -177,8 +172,6 @@ const NavBar = ({ isLoggedIn, onLogout, extension, overrideNavigation }: NavBarP
               Get Started
             </Button>
           )}
-          
-          <ThemeToggle />
           
           {extension}
         </nav>
