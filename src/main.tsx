@@ -2,10 +2,10 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
-import { ThemeProvider } from './providers/ThemeProvider'
+
+// Always use dark mode
+document.documentElement.classList.add('dark');
 
 createRoot(document.getElementById("root")!).render(
-  <ThemeProvider defaultTheme="system" storageKey="mindboggle-theme">
-    <App />
-  </ThemeProvider>
+  <App />
 );
