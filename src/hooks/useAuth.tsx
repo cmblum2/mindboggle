@@ -14,6 +14,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -129,14 +130,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Google sign-in
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/dashboard'
+      }
+    });
+    if (error) {
+      console.error('Google sign-in error:', error);
+      throw error;
+    }
+  };
+
   // Logout function
   const logout = async () => {
     setIsLoading(true);
     try {
-      // Clear any local state first to prevent UI flicker
       setUser(null);
-      
-      // Then sign out from Supabase
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Logout error:', error);
@@ -155,7 +167,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     login,
     logout,
-    signup
+    signup,
+    signInWithGoogle
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
