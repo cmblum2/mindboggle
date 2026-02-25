@@ -14,7 +14,7 @@ interface IndexProps {
   navBarExtension?: React.ReactNode;
 }
 
-const Index = ({ navBarExtension }: IndexProps) => {
+const Index = ({ navBarExtension }: IndexProps = {}) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();

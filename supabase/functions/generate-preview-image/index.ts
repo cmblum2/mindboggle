@@ -89,7 +89,7 @@ serve(async () => {
   // Convert canvas to PNG
   const pngData = canvas.toBuffer("image/png");
 
-  return new Response(pngData, {
+  return new Response(pngData as unknown as BodyInit, {
     headers: {
       "Content-Type": "image/png",
       "Cache-Control": "public, max-age=31536000, immutable"
