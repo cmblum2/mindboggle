@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,46 +8,34 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Games from "./pages/Games";
 import GameDetail from "./pages/GameDetail";
+import Train from "./pages/Train";
+import History from "./pages/History";
 import NotFound from "./pages/NotFound";
 import Info from "./pages/Info";
-import NavBarExtension from "./components/NavBarExtension";
 import BackgroundDecoration from "./components/BackgroundDecoration";
 
 const queryClient = new QueryClient();
 
-// Protected route component to handle auth redirects more gracefully
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
-  
-  // If auth is still loading, show nothing (or could show a loading spinner)
-  if (isLoading) {
-    return null;
-  }
-  
-  // If user is not authenticated, redirect to home
-  if (!user) {
-    return <Navigate to="/" replace />;
-  }
-  
-  // If user is authenticated, render the children
+  if (isLoading) return null;
+  if (!user) return <Navigate to="/" replace />;
   return <>{children}</>;
 };
 
-// Add global animations and transitions
 const AppContent = () => {
   return (
     <>
       <BackgroundDecoration />
       <Routes>
-        <Route path="/" element={<Index navBarExtension={<NavBarExtension />} />} />
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <Dashboard navBarExtension={<NavBarExtension />} />
-          </ProtectedRoute>
-        } />
-        <Route path="/games" element={<Games navBarExtension={<NavBarExtension />} />} />
-        <Route path="/game/:gameId" element={<GameDetail navBarExtension={<NavBarExtension />} />} />
-        <Route path="/info" element={<Info navBarExtension={<NavBarExtension />} />} />
+        <Route path="/" element={<Index />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/train" element={<ProtectedRoute><Train /></ProtectedRoute>} />
+        <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+        <Route path="/games" element={<Games />} />
+        <Route path="/game/:gameId" element={<GameDetail />} />
+        <Route path="/games/:gameId" element={<GameDetail />} />
+        <Route path="/info" element={<Info />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
