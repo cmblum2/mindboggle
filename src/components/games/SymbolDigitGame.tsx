@@ -7,13 +7,15 @@ interface SymbolDigitGameProps {
   onScoreChange: (score: number) => void;
   onGameEnd: () => void;
   difficulty?: 'easy' | 'medium' | 'hard';
+  onTrialComplete?: (trial: { correct: boolean; rtMs: number; stimulus: string; response: string; difficulty: number }) => void;
 }
 
 const SYMBOLS = ['☀', '♣', '♦', '♥', '♠', '✿', '★', '♬', '⬟'];
 
-const SymbolDigitGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: SymbolDigitGameProps) => {
+const SymbolDigitGame = ({ onScoreChange, onGameEnd, difficulty = 'medium', onTrialComplete }: SymbolDigitGameProps) => {
   const totalTrials = difficulty === 'easy' ? 20 : difficulty === 'medium' ? 30 : 45;
   const keySize = difficulty === 'easy' ? 6 : difficulty === 'medium' ? 7 : 9;
+  const difficultyNum = difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3;
 
   const [started, setStarted] = useState(false);
   const [key, setKey] = useState<{ symbol: string; digit: number }[]>([]);
@@ -25,15 +27,12 @@ const SymbolDigitGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: Sy
   const trialStart = useRef(0);
 
   const startGame = () => {
-    // Build symbol-digit key
     const shuffledSymbols = [...SYMBOLS].sort(() => Math.random() - 0.5).slice(0, keySize);
     const newKey = shuffledSymbols.map((s, i) => ({ symbol: s, digit: i + 1 }));
     setKey(newKey);
     setTrialNum(0);
     setScore(0);
     setStarted(true);
-
-    // First trial
     const entry = newKey[Math.floor(Math.random() * newKey.length)];
     setCurrentSymbol(entry.symbol);
     setCorrectDigit(entry.digit);
@@ -44,6 +43,14 @@ const SymbolDigitGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: Sy
     if (feedback) return;
     const rt = performance.now() - trialStart.current;
     const correct = digit === correctDigit;
+
+    onTrialComplete?.({
+      correct,
+      rtMs: rt,
+      stimulus: currentSymbol,
+      response: String(digit),
+      difficulty: difficultyNum,
+    });
 
     if (correct) {
       const rtBonus = Math.max(0, Math.round((2000 - rt) / 100));
@@ -60,10 +67,7 @@ const SymbolDigitGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: Sy
     setTrialNum(next);
 
     setTimeout(() => {
-      if (next >= totalTrials) {
-        onGameEnd();
-        return;
-      }
+      if (next >= totalTrials) { onGameEnd(); return; }
       const entry = key[Math.floor(Math.random() * key.length)];
       setCurrentSymbol(entry.symbol);
       setCorrectDigit(entry.digit);
@@ -77,9 +81,7 @@ const SymbolDigitGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: Sy
       <div className="text-center space-y-4 py-8">
         <Hash className="w-16 h-16 mx-auto text-primary" />
         <h2 className="text-2xl font-bold">Symbol Digit</h2>
-        <p className="text-muted-foreground max-w-md mx-auto">
-          Use the key to match each symbol to its digit as fast as possible. Speed and accuracy both matter!
-        </p>
+        <p className="text-muted-foreground max-w-md mx-auto">Use the key to match each symbol to its digit as fast as possible. Speed and accuracy both matter!</p>
         <Button onClick={startGame} size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">Start</Button>
       </div>
     );
@@ -92,10 +94,7 @@ const SymbolDigitGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: Sy
       <div className="w-full bg-muted rounded-full h-2">
         <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
       </div>
-
       <div className="text-xs text-muted-foreground">Trial {trialNum + 1} / {totalTrials}</div>
-
-      {/* Symbol-digit key */}
       <div className="flex flex-wrap justify-center gap-2 px-2 py-3 rounded-lg bg-muted/30 border border-border w-full max-w-md">
         {key.map(k => (
           <div key={k.digit} className="flex flex-col items-center px-2 py-1">
@@ -104,14 +103,7 @@ const SymbolDigitGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: Sy
           </div>
         ))}
       </div>
-
-      {/* Current stimulus */}
-      <motion.div
-        key={trialNum}
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="relative w-24 h-24 flex items-center justify-center rounded-2xl border-2 border-border bg-muted/20"
-      >
+      <motion.div key={trialNum} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="relative w-24 h-24 flex items-center justify-center rounded-2xl border-2 border-border bg-muted/20">
         <span className="text-5xl">{currentSymbol}</span>
         {feedback && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute -top-3 -right-3">
@@ -119,17 +111,9 @@ const SymbolDigitGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: Sy
           </motion.div>
         )}
       </motion.div>
-
-      {/* Digit buttons */}
       <div className="grid grid-cols-5 gap-2 max-w-xs">
         {Array.from({ length: keySize }, (_, i) => i + 1).map(d => (
-          <Button
-            key={d}
-            variant="outline"
-            className="h-12 w-12 text-lg font-bold"
-            onClick={() => handleAnswer(d)}
-            disabled={!!feedback}
-          >
+          <Button key={d} variant="outline" className="h-12 w-12 text-lg font-bold" onClick={() => handleAnswer(d)} disabled={!!feedback}>
             {d}
           </Button>
         ))}

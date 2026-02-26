@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Palette, CheckCircle, XCircle } from 'lucide-react';
@@ -7,6 +7,7 @@ interface StroopGameProps {
   onScoreChange: (score: number) => void;
   onGameEnd: () => void;
   difficulty?: 'easy' | 'medium' | 'hard';
+  onTrialComplete?: (trial: { correct: boolean; rtMs: number; stimulus: string; response: string; difficulty: number }) => void;
 }
 
 const COLORS = [
@@ -24,9 +25,10 @@ interface StroopTrial {
   isCongruent: boolean;
 }
 
-const StroopGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: StroopGameProps) => {
+const StroopGame = ({ onScoreChange, onGameEnd, difficulty = 'medium', onTrialComplete }: StroopGameProps) => {
   const totalTrials = difficulty === 'easy' ? 15 : difficulty === 'medium' ? 25 : 35;
   const congruentRatio = difficulty === 'easy' ? 0.6 : difficulty === 'medium' ? 0.4 : 0.25;
+  const difficultyNum = difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3;
 
   const [started, setStarted] = useState(false);
   const [trial, setTrial] = useState<StroopTrial | null>(null);
@@ -44,18 +46,13 @@ const StroopGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: StroopG
     const wordColor = COLORS[Math.floor(Math.random() * COLORS.length)];
     let inkColor = wordColor;
     if (!isCongruent) {
-      do {
-        inkColor = COLORS[Math.floor(Math.random() * COLORS.length)];
-      } while (inkColor.name === wordColor.name);
+      do { inkColor = COLORS[Math.floor(Math.random() * COLORS.length)]; } while (inkColor.name === wordColor.name);
     }
     return { word: wordColor.name, inkColor, isCongruent };
   };
 
   const nextTrial = () => {
-    if (trialNum >= totalTrials) {
-      onGameEnd();
-      return;
-    }
+    if (trialNum >= totalTrials) { onGameEnd(); return; }
     const t = generateTrial();
     setTrial(t);
     setFeedback(null);
@@ -80,6 +77,14 @@ const StroopGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: StroopG
     const rt = performance.now() - trialStart.current;
     const correct = colorName === trial.inkColor.name;
 
+    onTrialComplete?.({
+      correct,
+      rtMs: rt,
+      stimulus: `${trial.word}_ink:${trial.inkColor.name}_${trial.isCongruent ? 'congruent' : 'incongruent'}`,
+      response: colorName,
+      difficulty: difficultyNum,
+    });
+
     if (correct) {
       const rtBonus = Math.max(0, Math.round((2000 - rt) / 100));
       const incongruentBonus = trial.isCongruent ? 0 : 5;
@@ -87,13 +92,8 @@ const StroopGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: StroopG
       const newScore = score + pts;
       setScore(newScore);
       onScoreChange(newScore);
-      if (trial.isCongruent) {
-        setCongruentCorrect(p => p + 1);
-        setCongruentRT(p => [...p, rt]);
-      } else {
-        setIncongruentCorrect(p => p + 1);
-        setIncongruentRT(p => [...p, rt]);
-      }
+      if (trial.isCongruent) { setCongruentCorrect(p => p + 1); setCongruentRT(p => [...p, rt]); }
+      else { setIncongruentCorrect(p => p + 1); setIncongruentRT(p => [...p, rt]); }
       setFeedback('correct');
     } else {
       setFeedback('wrong');
@@ -126,45 +126,23 @@ const StroopGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: StroopG
       <div className="w-full bg-muted rounded-full h-2">
         <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
       </div>
-
       <div className="text-xs text-muted-foreground">
         Trial {trialNum + 1} / {totalTrials}
         {interferenceScore !== null && ` · Interference: ${interferenceScore}ms`}
       </div>
-
-      {/* Stimulus */}
       {trial && (
-        <motion.div
-          key={trialNum}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="relative py-8"
-        >
-          <span className="text-5xl font-black select-none" style={{ color: trial.inkColor.hex }}>
-            {trial.word.toUpperCase()}
-          </span>
+        <motion.div key={trialNum} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="relative py-8">
+          <span className="text-5xl font-black select-none" style={{ color: trial.inkColor.hex }}>{trial.word.toUpperCase()}</span>
           {feedback && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="absolute -top-4 right-0"
-            >
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="absolute -top-4 right-0">
               {feedback === 'correct' ? <CheckCircle className="w-6 h-6 text-green-500" /> : <XCircle className="w-6 h-6 text-red-500" />}
             </motion.div>
           )}
         </motion.div>
       )}
-
-      {/* Color buttons */}
       <div className="grid grid-cols-3 gap-3 max-w-sm w-full">
         {COLORS.map(c => (
-          <Button
-            key={c.name}
-            variant="outline"
-            className="h-12 font-semibold text-sm border-2 hover:opacity-80"
-            style={{ borderColor: c.hex, color: c.hex }}
-            onClick={() => handleAnswer(c.name)}
-          >
+          <Button key={c.name} variant="outline" className="h-12 font-semibold text-sm border-2 hover:opacity-80" style={{ borderColor: c.hex, color: c.hex }} onClick={() => handleAnswer(c.name)}>
             {c.name}
           </Button>
         ))}
