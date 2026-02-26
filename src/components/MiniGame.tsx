@@ -12,6 +12,11 @@ import CreativeSparkGame from './games/CreativeSparkGame';
 import PatternRecognitionGame from './games/PatternRecognitionGame';
 import MentalMathGame from './games/MentalMathGame';
 import ReactionTestGame from './games/ReactionTestGame';
+import NBackGame from './games/NBackGame';
+import StroopGame from './games/StroopGame';
+import TaskSwitchGame from './games/TaskSwitchGame';
+import VisualSearchGame from './games/VisualSearchGame';
+import SymbolDigitGame from './games/SymbolDigitGame';
 import { saveGameResults } from '@/lib/dashboard';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -256,6 +261,46 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
       case 'reaction-test':
         return (
           <ReactionTestGame
+            onScoreChange={handleScoreChange}
+            onGameEnd={handleGameEnd}
+            difficulty={getDifficulty()}
+          />
+        );
+      case 'n-back':
+        return (
+          <NBackGame
+            onScoreChange={handleScoreChange}
+            onGameEnd={handleGameEnd}
+            difficulty={getDifficulty()}
+          />
+        );
+      case 'stroop':
+        return (
+          <StroopGame
+            onScoreChange={handleScoreChange}
+            onGameEnd={handleGameEnd}
+            difficulty={getDifficulty()}
+          />
+        );
+      case 'task-switch':
+        return (
+          <TaskSwitchGame
+            onScoreChange={handleScoreChange}
+            onGameEnd={handleGameEnd}
+            difficulty={getDifficulty()}
+          />
+        );
+      case 'visual-search':
+        return (
+          <VisualSearchGame
+            onScoreChange={handleScoreChange}
+            onGameEnd={handleGameEnd}
+            difficulty={getDifficulty()}
+          />
+        );
+      case 'symbol-digit':
+        return (
+          <SymbolDigitGame
             onScoreChange={handleScoreChange}
             onGameEnd={handleGameEnd}
             difficulty={getDifficulty()}
