@@ -7,13 +7,15 @@ interface TaskSwitchGameProps {
   onScoreChange: (score: number) => void;
   onGameEnd: () => void;
   difficulty?: 'easy' | 'medium' | 'hard';
+  onTrialComplete?: (trial: { correct: boolean; rtMs: number; stimulus: string; response: string; difficulty: number }) => void;
 }
 
 type Rule = 'parity' | 'magnitude';
 
-const TaskSwitchGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: TaskSwitchGameProps) => {
+const TaskSwitchGame = ({ onScoreChange, onGameEnd, difficulty = 'medium', onTrialComplete }: TaskSwitchGameProps) => {
   const totalTrials = difficulty === 'easy' ? 20 : difficulty === 'medium' ? 30 : 40;
   const switchRate = difficulty === 'easy' ? 0.25 : difficulty === 'medium' ? 0.4 : 0.55;
+  const difficultyNum = difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3;
 
   const [started, setStarted] = useState(false);
   const [number, setNumber] = useState(0);
@@ -27,7 +29,7 @@ const TaskSwitchGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: Tas
   const generateTrial = (prevRule: Rule) => {
     const shouldSwitch = Math.random() < switchRate;
     const newRule: Rule = shouldSwitch ? (prevRule === 'parity' ? 'magnitude' : 'parity') : prevRule;
-    const num = Math.floor(Math.random() * 9) + 1; // 1-9
+    const num = Math.floor(Math.random() * 9) + 1;
     return { number: num, rule: newRule, isSwitch: shouldSwitch };
   };
 
@@ -47,15 +49,19 @@ const TaskSwitchGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: Tas
     let correct = false;
 
     if (rule === 'parity') {
-      // Left = Even, Right = Odd
       correct = answer === 'left' ? number % 2 === 0 : number % 2 !== 0;
     } else {
-      // Left = < 5, Right = > 5
       correct = answer === 'left' ? number < 5 : number > 5;
     }
+    if (rule === 'magnitude' && number === 5) correct = true;
 
-    // number === 5 in magnitude: always wrong (edge case), skip
-    if (rule === 'magnitude' && number === 5) correct = true; // neutral
+    onTrialComplete?.({
+      correct,
+      rtMs: rt,
+      stimulus: `${number}_rule:${rule}_${isSwitch ? 'switch' : 'stay'}`,
+      response: answer,
+      difficulty: difficultyNum,
+    });
 
     if (correct) {
       const rtBonus = Math.max(0, Math.round((1500 - rt) / 100));
@@ -73,10 +79,7 @@ const TaskSwitchGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: Tas
     setTrialNum(next);
 
     setTimeout(() => {
-      if (next >= totalTrials) {
-        onGameEnd();
-        return;
-      }
+      if (next >= totalTrials) { onGameEnd(); return; }
       const t = generateTrial(rule);
       setNumber(t.number);
       setRule(t.rule);
@@ -106,23 +109,11 @@ const TaskSwitchGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: Tas
       <div className="w-full bg-muted rounded-full h-2">
         <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
       </div>
-
-      <div className="text-xs text-muted-foreground">
-        Trial {trialNum + 1} / {totalTrials} {isSwitch && '· 🔀 Switch!'}
-      </div>
-
-      {/* Rule indicator */}
+      <div className="text-xs text-muted-foreground">Trial {trialNum + 1} / {totalTrials} {isSwitch && '· 🔀 Switch!'}</div>
       <div className={`px-4 py-2 rounded-lg text-sm font-semibold border-2 ${rule === 'parity' ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-amber-500 text-amber-400 bg-amber-500/10'}`}>
         {rule === 'parity' ? '⚡ ODD or EVEN?' : '📏 LOW (< 5) or HIGH (> 5)?'}
       </div>
-
-      {/* Stimulus */}
-      <motion.div
-        key={`${trialNum}-${number}`}
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="relative w-28 h-28 flex items-center justify-center rounded-2xl border-2 border-border bg-muted/30"
-      >
+      <motion.div key={`${trialNum}-${number}`} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="relative w-28 h-28 flex items-center justify-center rounded-2xl border-2 border-border bg-muted/30">
         <span className="text-5xl font-bold text-foreground">{number}</span>
         {feedback && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute -top-3 -right-3">
@@ -130,8 +121,6 @@ const TaskSwitchGame = ({ onScoreChange, onGameEnd, difficulty = 'medium' }: Tas
           </motion.div>
         )}
       </motion.div>
-
-      {/* Response buttons */}
       <div className="flex gap-4 w-full max-w-sm">
         <Button size="lg" variant="outline" className="flex-1 h-14" onClick={() => handleAnswer('left')}>
           {rule === 'parity' ? 'Even' : 'Low (< 5)'}

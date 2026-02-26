@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { toast } from 'sonner';
@@ -19,6 +19,7 @@ import VisualSearchGame from './games/VisualSearchGame';
 import SymbolDigitGame from './games/SymbolDigitGame';
 import { saveGameResults } from '@/lib/dashboard';
 import { useAuth } from '@/hooks/useAuth';
+import { startGameSession, logTrial, endGameSession, GameSessionContext, TrialRecord } from '@/lib/trialLogger';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,7 +44,7 @@ interface GameState {
   timeLeft: number;
   isPlaying: boolean;
   showFeedback: boolean;
-  resultsSaved: boolean; // Flag to track if results were saved
+  resultsSaved: boolean;
 }
 
 const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateChange }: MiniGameProps) => {
@@ -57,45 +58,41 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
   
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const [exitAction, setExitAction] = useState<() => void>(() => () => {});
+  const gameSessionRef = useRef<GameSessionContext | null>(null);
   
   const { toast: uiToast } = useToast();
   const { user } = useAuth();
   
-  // Notify parent component when game state changes
   useEffect(() => {
     if (onGameStateChange) {
       onGameStateChange(state.isPlaying);
     }
   }, [state.isPlaying, onGameStateChange]);
   
-  // Timer for games
   useEffect(() => {
     let timer: number;
     
     if (state.isPlaying && state.timeLeft > 0) {
       timer = window.setInterval(() => {
-        setState(prev => ({
-          ...prev,
-          timeLeft: prev.timeLeft - 1
-        }));
+        setState(prev => ({ ...prev, timeLeft: prev.timeLeft - 1 }));
       }, 1000);
     } else if (state.timeLeft === 0 && state.isPlaying) {
       handleGameEnd();
     }
     
-    return () => {
-      if (timer) clearInterval(timer);
-    };
+    return () => { if (timer) clearInterval(timer); };
   }, [state.isPlaying, state.timeLeft]);
   
   const startGame = () => {
     if (requireLogin) {
-      uiToast({
-        title: "Login required",
-        description: "Please log in to play games and save your progress",
-        variant: "default"
-      });
+      uiToast({ title: "Login required", description: "Please log in to play games and save your progress", variant: "default" });
       return;
+    }
+    
+    // Start analytics session for cognitive games
+    const cognitiveGameIds = ['n-back', 'stroop', 'task-switch', 'visual-search', 'symbol-digit'];
+    if (user && cognitiveGameIds.includes(game.id)) {
+      gameSessionRef.current = startGameSession(user.id, game.id);
     }
     
     setState({
@@ -103,242 +100,85 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
       timeLeft: getGameDuration(),
       score: 0,
       showFeedback: false,
-      resultsSaved: false, // Reset when starting a new game
+      resultsSaved: false,
     });
   };
   
+  const handleTrialComplete = useCallback((trial: { correct: boolean; rtMs: number; stimulus: string; response: string; difficulty: number }) => {
+    if (gameSessionRef.current) {
+      logTrial(gameSessionRef.current, {
+        correct: trial.correct,
+        rtMs: trial.rtMs,
+        stimulus: trial.stimulus,
+        response: trial.response,
+        difficulty: trial.difficulty,
+      });
+    }
+  }, []);
+  
   const handleGameEnd = async () => {
-    // Skip if game is already ended and results saved
-    if (!state.isPlaying || state.resultsSaved) {
-      return;
+    if (!state.isPlaying || state.resultsSaved) return;
+    
+    setState(prev => ({ ...prev, isPlaying: false, showFeedback: true }));
+    
+    // End analytics session and persist trial data
+    if (gameSessionRef.current) {
+      endGameSession(gameSessionRef.current);
+      gameSessionRef.current = null;
     }
     
-    // First, stop the game
-    setState(prev => ({
-      ...prev,
-      isPlaying: false,
-      showFeedback: true
-    }));
-    
-    // Only save results if they haven't been saved yet for this game session and user is logged in
     if (user && !state.resultsSaved) {
       try {
-        // Calculate normalized scores based on game category
-        let memoryScore = 0;
-        let focusScore = 0;
-        let speedScore = 0;
-        
-        // Assign score to the appropriate cognitive area based on game category
+        let memoryScore = 0, focusScore = 0, speedScore = 0;
         switch(game.category.toLowerCase()) {
-          case 'memory':
-            memoryScore = Math.min(state.score, 100);
-            break;
-          case 'focus':
-            focusScore = Math.min(state.score, 100);
-            break;
-          case 'speed':
-            speedScore = Math.min(state.score, 100);
-            break;
-          case 'balanced':
-          case 'mixed':
-            // For balanced training, distribute the score across all areas
+          case 'memory': memoryScore = Math.min(state.score, 100); break;
+          case 'focus': focusScore = Math.min(state.score, 100); break;
+          case 'speed': speedScore = Math.min(state.score, 100); break;
+          case 'balanced': case 'mixed':
             memoryScore = Math.min(Math.round(state.score / 3), 100);
             focusScore = Math.min(Math.round(state.score / 3), 100);
             speedScore = Math.min(Math.round(state.score / 3), 100);
             break;
-          default:
-            speedScore = Math.min(state.score, 100);
-            break;
+          default: speedScore = Math.min(state.score, 100); break;
         }
         
-        // Save results to database
         await saveGameResults(user.id, memoryScore, focusScore, speedScore);
-        
-        // Mark results as saved to prevent duplicate saving
-        setState(prev => ({
-          ...prev,
-          resultsSaved: true
-        }));
-        
-        // Show toast only once per game session
+        setState(prev => ({ ...prev, resultsSaved: true }));
         toast.success("Game progress saved!");
-        
-        // Signal that stats should be updated, but we won't navigate away
         onComplete(state.score);
       } catch (error) {
         console.error("Error saving game results:", error);
         toast.error("Couldn't save your progress");
       }
     } else if (!user) {
-      // Still call onComplete to update UI as needed
       onComplete(state.score);
     }
     
-    uiToast({
-      title: "Game complete!",
-      description: `You scored ${state.score} points.`
-    });
+    uiToast({ title: "Game complete!", description: `You scored ${state.score} points.` });
   };
   
   const getGameDuration = (): number => {
-    // Convert duration string to seconds
     const durationMatch = game.duration.match(/(\d+)/);
-    if (durationMatch) {
-      return parseInt(durationMatch[0]) * 60; // Convert minutes to seconds
-    }
-    return 60; // Default 1 minute
+    if (durationMatch) return parseInt(durationMatch[0]) * 60;
+    return 60;
   };
   
   const handleScoreChange = (newScore: number) => {
-    setState(prev => ({
-      ...prev,
-      score: newScore
-    }));
+    setState(prev => ({ ...prev, score: newScore }));
   };
   
-  // Handle exit confirmation
   const confirmExit = (exitCallback: () => void) => {
     if (state.isPlaying) {
       setExitAction(() => exitCallback);
       setShowExitConfirmation(true);
     } else {
-      // If not playing, just execute the callback directly
       exitCallback();
     }
   };
   
-  const handleBackClick = () => {
-    confirmExit(onBack);
-  };
+  const handleBackClick = () => { confirmExit(onBack); };
+  const handleEndGameClick = () => { confirmExit(handleGameEnd); };
   
-  const handleEndGameClick = () => {
-    confirmExit(handleGameEnd);
-  };
-  
-  // Render the appropriate game component based on the game.id
-  const renderGame = () => {
-    switch (game.id) {
-      case 'memory-match':
-        return (
-          <MemoryGame
-            onScoreChange={handleScoreChange}
-            onGameEnd={handleGameEnd}
-            difficulty={getDifficulty()}
-          />
-        );
-      case 'number-sequence':
-        return (
-          <SequenceGame
-            onScoreChange={handleScoreChange}
-            onGameEnd={handleGameEnd}
-            difficulty={getDifficulty()}
-          />
-        );
-      case 'word-recall':
-        return (
-          <WordGame
-            onScoreChange={handleScoreChange}
-            onGameEnd={handleGameEnd}
-            difficulty={getDifficulty()}
-          />
-        );
-      case 'pattern-recognition':
-        return (
-          <PatternRecognitionGame
-            onScoreChange={handleScoreChange}
-            onGameEnd={handleGameEnd}
-            difficulty={getDifficulty()}
-          />
-        );
-      case 'mental-math':
-        return (
-          <MentalMathGame
-            onScoreChange={handleScoreChange}
-            onGameEnd={handleGameEnd}
-            difficulty={getDifficulty()}
-          />
-        );
-      case 'reaction-test':
-        return (
-          <ReactionTestGame
-            onScoreChange={handleScoreChange}
-            onGameEnd={handleGameEnd}
-            difficulty={getDifficulty()}
-          />
-        );
-      case 'n-back':
-        return (
-          <NBackGame
-            onScoreChange={handleScoreChange}
-            onGameEnd={handleGameEnd}
-            difficulty={getDifficulty()}
-          />
-        );
-      case 'stroop':
-        return (
-          <StroopGame
-            onScoreChange={handleScoreChange}
-            onGameEnd={handleGameEnd}
-            difficulty={getDifficulty()}
-          />
-        );
-      case 'task-switch':
-        return (
-          <TaskSwitchGame
-            onScoreChange={handleScoreChange}
-            onGameEnd={handleGameEnd}
-            difficulty={getDifficulty()}
-          />
-        );
-      case 'visual-search':
-        return (
-          <VisualSearchGame
-            onScoreChange={handleScoreChange}
-            onGameEnd={handleGameEnd}
-            difficulty={getDifficulty()}
-          />
-        );
-      case 'symbol-digit':
-        return (
-          <SymbolDigitGame
-            onScoreChange={handleScoreChange}
-            onGameEnd={handleGameEnd}
-            difficulty={getDifficulty()}
-          />
-        );
-      case 'daily-challenge':
-      case 'balanced-training':
-        return (
-          <CreativeSparkGame
-            onScoreChange={handleScoreChange}
-            onGameEnd={handleGameEnd}
-            difficulty={getDifficulty()}
-          />
-        );
-      default:
-        return (
-          <div className="text-center">
-            <p>Game simulation - click buttons to earn points</p>
-            <div className="flex gap-2 mt-4 justify-center">
-              <Button 
-                variant="outline"
-                onClick={() => handleScoreChange(state.score + 1)}
-              >
-                +1 Point
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => handleScoreChange(state.score + 5)}
-              >
-                +5 Points
-              </Button>
-            </div>
-          </div>
-        );
-    }
-  };
-  
-  // Convert difficulty string to game difficulty level
   const getDifficulty = (): 'easy' | 'medium' | 'hard' => {
     switch (game.difficulty.toLowerCase()) {
       case 'easy': return 'easy';
@@ -348,14 +188,39 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
     }
   };
 
+  const renderGame = () => {
+    switch (game.id) {
+      case 'memory-match': return <MemoryGame onScoreChange={handleScoreChange} onGameEnd={handleGameEnd} difficulty={getDifficulty()} />;
+      case 'number-sequence': return <SequenceGame onScoreChange={handleScoreChange} onGameEnd={handleGameEnd} difficulty={getDifficulty()} />;
+      case 'word-recall': return <WordGame onScoreChange={handleScoreChange} onGameEnd={handleGameEnd} difficulty={getDifficulty()} />;
+      case 'pattern-recognition': return <PatternRecognitionGame onScoreChange={handleScoreChange} onGameEnd={handleGameEnd} difficulty={getDifficulty()} />;
+      case 'mental-math': return <MentalMathGame onScoreChange={handleScoreChange} onGameEnd={handleGameEnd} difficulty={getDifficulty()} />;
+      case 'reaction-test': return <ReactionTestGame onScoreChange={handleScoreChange} onGameEnd={handleGameEnd} difficulty={getDifficulty()} />;
+      case 'n-back': return <NBackGame onScoreChange={handleScoreChange} onGameEnd={handleGameEnd} difficulty={getDifficulty()} onTrialComplete={handleTrialComplete} />;
+      case 'stroop': return <StroopGame onScoreChange={handleScoreChange} onGameEnd={handleGameEnd} difficulty={getDifficulty()} onTrialComplete={handleTrialComplete} />;
+      case 'task-switch': return <TaskSwitchGame onScoreChange={handleScoreChange} onGameEnd={handleGameEnd} difficulty={getDifficulty()} onTrialComplete={handleTrialComplete} />;
+      case 'visual-search': return <VisualSearchGame onScoreChange={handleScoreChange} onGameEnd={handleGameEnd} difficulty={getDifficulty()} onTrialComplete={handleTrialComplete} />;
+      case 'symbol-digit': return <SymbolDigitGame onScoreChange={handleScoreChange} onGameEnd={handleGameEnd} difficulty={getDifficulty()} onTrialComplete={handleTrialComplete} />;
+      case 'daily-challenge': case 'balanced-training': return <CreativeSparkGame onScoreChange={handleScoreChange} onGameEnd={handleGameEnd} difficulty={getDifficulty()} />;
+      default:
+        return (
+          <div className="text-center">
+            <p>Game simulation - click buttons to earn points</p>
+            <div className="flex gap-2 mt-4 justify-center">
+              <Button variant="outline" onClick={() => handleScoreChange(state.score + 1)}>+1 Point</Button>
+              <Button variant="outline" onClick={() => handleScoreChange(state.score + 5)}>+5 Points</Button>
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="space-y-6 py-4">
       <div className="flex items-center justify-between">
         <Button variant="outline" onClick={handleBackClick}>Back</Button>
         <div className="text-xl font-bold">{game.name}</div>
-        <div className="bg-muted rounded-md px-3 py-1 font-medium">
-          Score: {state.score}
-        </div>
+        <div className="bg-muted rounded-md px-3 py-1 font-medium">Score: {state.score}</div>
       </div>
       
       {!state.isPlaying && !state.showFeedback && (
@@ -363,11 +228,7 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
           <h2 className="text-2xl font-bold">{game.name}</h2>
           <p className="text-muted-foreground">{game.description}</p>
           <p>This game helps improve your {game.category.toLowerCase()} abilities.</p>
-          <Button 
-            size="lg" 
-            className="bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white"
-            onClick={startGame}
-          >
+          <Button size="lg" className="bg-gradient-to-r from-brain-purple to-brain-teal hover:opacity-90 text-white" onClick={startGame}>
             {requireLogin ? "Login to Play" : "Start Playing"}
           </Button>
         </div>
@@ -376,34 +237,18 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
       {state.isPlaying && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <div className="bg-muted px-3 py-1 rounded-md">
-              Time: {state.timeLeft}s
-            </div>
+            <div className="bg-muted px-3 py-1 rounded-md">Time: {state.timeLeft}s</div>
             <Button variant="outline" onClick={handleEndGameClick}>End Game</Button>
           </div>
-          
-          <div className="game-area min-h-[300px] border rounded-xl p-4">
-            {renderGame()}
-          </div>
+          <div className="game-area min-h-[300px] border rounded-xl p-4">{renderGame()}</div>
         </div>
       )}
       
       {state.showFeedback && (
-        <FeedbackPanel 
-          score={state.score}
-          gameType={game.category}
-          onClose={() => {
-            setState(prev => ({ ...prev, showFeedback: false }));
-            onBack();
-          }}
-        />
+        <FeedbackPanel score={state.score} gameType={game.category} onClose={() => { setState(prev => ({ ...prev, showFeedback: false })); onBack(); }} />
       )}
       
-      {/* Exit Confirmation Dialog */}
-      <AlertDialog
-        open={showExitConfirmation}
-        onOpenChange={setShowExitConfirmation}
-      >
+      <AlertDialog open={showExitConfirmation} onOpenChange={setShowExitConfirmation}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure you want to exit?</AlertDialogTitle>
@@ -414,17 +259,11 @@ const MiniGame = ({ game, onComplete, onBack, requireLogin = false, onGameStateC
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>No, continue playing</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                // If game is active and results not yet saved, handle game end logic
-                if (state.isPlaying && !state.resultsSaved) {
-                  handleGameEnd();
-                }
-                // Then perform the actual exit action
-                exitAction();
-                setShowExitConfirmation(false);
-              }}
-            >
+            <AlertDialogAction onClick={() => {
+              if (state.isPlaying && !state.resultsSaved) handleGameEnd();
+              exitAction();
+              setShowExitConfirmation(false);
+            }}>
               Yes, exit game
             </AlertDialogAction>
           </AlertDialogFooter>
