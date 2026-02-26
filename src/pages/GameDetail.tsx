@@ -122,16 +122,64 @@ const GameDetail = ({ navBarExtension }: GameDetailProps) => {
             icon: 'speed'
           },
           {
+            id: 'n-back',
+            name: 'N-Back',
+            description: 'Adaptive working memory task. Match current stimulus to n steps back.',
+            category: 'Memory',
+            difficulty: 'Medium',
+            duration: '5 min',
+            progress: user ? 0 : 0,
+            icon: 'memory'
+          },
+          {
+            id: 'stroop',
+            name: 'Stroop Test',
+            description: 'Name the ink color, not the word. Measures interference control.',
+            category: 'Focus',
+            difficulty: 'Medium',
+            duration: '4 min',
+            progress: user ? 0 : 0,
+            icon: 'focus'
+          },
+          {
+            id: 'task-switch',
+            name: 'Task Switch',
+            description: 'Alternate between rules. Measures cognitive switching cost.',
+            category: 'Focus',
+            difficulty: 'Medium',
+            duration: '5 min',
+            progress: user ? 0 : 0,
+            icon: 'focus'
+          },
+          {
+            id: 'visual-search',
+            name: 'Visual Search',
+            description: 'Find the target among distractors. Measures attentional efficiency.',
+            category: 'Focus',
+            difficulty: 'Medium',
+            duration: '5 min',
+            progress: user ? 0 : 0,
+            icon: 'focus'
+          },
+          {
+            id: 'symbol-digit',
+            name: 'Symbol Digit',
+            description: 'Match symbols to digits as fast as possible.',
+            category: 'Speed',
+            difficulty: 'Medium',
+            duration: '4 min',
+            progress: user ? 0 : 0,
+            icon: 'speed'
+          },
+          {
             id: 'daily-challenge',
             name: `Daily Brain Challenge (${dateString})`,
-            description: 'A new balanced training exercise each day that works on multiple cognitive skills simultaneously',
+            description: 'A new balanced training exercise each day',
             category: 'Balanced',
             difficulty: 'Medium',
             duration: '10 min',
             progress: user ? 0 : 0,
-            icon: 'focus',
-            brainTarget: 'Multiple Brain Regions',
-            cognitiveHealth: 'Provides comprehensive training across memory, attention, processing speed and executive function areas simultaneously.'
+            icon: 'focus'
           }
         ];
         
